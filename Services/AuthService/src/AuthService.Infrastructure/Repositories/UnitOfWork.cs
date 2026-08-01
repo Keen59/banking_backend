@@ -1,0 +1,87 @@
+﻿using AuthService.Application.Interfaces.Repositories;
+using AuthService.Infrastructure.Context;
+using AuthService.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
+
+namespace AuthService.Infastructure.Interfaces.UnityOfWork;
+
+
+public class UnitOfWork(DBContext dbContext, IUserRepository users, IRefreshTokenRepository refreshTokens, IDeviceRepository devices, IUserSessionRepository sessions, ILoginAttemptRepository loginAttempts, IAuditLogRepository auditLogs,IPasswordResetTokenRepository passwordResetTokenRepository) : IUnitOfWork
+{
+    private readonly DBContext dbContext;
+
+    private IDbContextTransaction? _currentTransaction;
+
+    public IUserRepository UserRepository => users;
+
+    public IRefreshTokenRepository RefreshTokenRepository => refreshTokens;
+
+    public IDeviceRepository DeviceRepository => devices;
+
+    public IUserSessionRepository UserSessionRepository => sessions;
+
+    public ILoginAttemptRepository LoginAttemptRepository => loginAttempts;
+
+    public IAuditLogRepository AuditLogRepository => auditLogs;
+
+    public IPasswordResetTokenRepository PasswordResetTokenRepository => passwordResetTokenRepository;
+
+    public async ValueTask DisposeAsync() => await dbContext.DisposeAsync();
+
+    public int Save()
+    {
+
+        return dbContext.CompleteSave();
+    }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync()
+    {
+        if (_currentTransaction != null)
+            return _currentTransaction;
+
+        _currentTransaction = await dbContext.Database.BeginTransactionAsync();
+        return _currentTransaction;
+    }
+
+    public async Task CommitTransactionAsync()
+    {
+        try
+        {
+            await dbContext.SaveChangesAsync();
+            await _currentTransaction!.CommitAsync();
+        }
+        catch
+        {
+            await RollbackTransactionAsync();
+            throw;
+        }
+        finally
+        {
+            await _currentTransaction!.DisposeAsync();
+            _currentTransaction = null;
+        }
+    }
+
+    public async Task RollbackTransactionAsync()
+    {
+        try
+        {
+            if (_currentTransaction != null)
+                await _currentTransaction.RollbackAsync();
+        }
+        finally
+        {
+            if (_currentTransaction != null)
+            {
+                await _currentTransaction.DisposeAsync();
+                _currentTransaction = null;
+            }
+        }
+    }
+    IRepository<TEntity> IUnitOfWork.Repository<TEntity>() => new Repository<TEntity>(dbContext);
+
+    public async Task<int> SaveAsync(CancellationToken cancellationToken = default)
+    {
+        return await dbContext.CompleteSaveAsync();
+    }
+}
