@@ -1,9 +1,8 @@
-﻿using AuthService.Application.Interfaces.Repositories;
-using AuthService.Domain.Entities;
+﻿using AuthService.Domain.Entities;
 
 namespace AuthService.Application.Interfaces.Services;
 
-public interface IRefreshTokenService 
+public interface IRefreshTokenService
 {
-   Task<RefreshToken> Generate(Guid Id);
+    Task<RefreshToken> Generate(Guid userId, Guid? familyId = null);
 }

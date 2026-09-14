@@ -13,6 +13,7 @@ public interface IUnitOfWork : IAsyncDisposable
     ILoginAttemptRepository LoginAttemptRepository { get; }
     IAuditLogRepository AuditLogRepository { get; }
     IPasswordResetTokenRepository PasswordResetTokenRepository { get; }
+    IEmailOtpRepository EmailOtpRepository { get; }
 
     IRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity, new();
     Task<int> SaveAsync(CancellationToken cancellationToken);

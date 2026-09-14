@@ -1,15 +1,20 @@
 ﻿using AuthService.Application.Interfaces.Repositories;
 using AuthService.Infrastructure.Context;
-using AuthService.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace AuthService.Infastructure.Interfaces.UnityOfWork;
+namespace AuthService.Infrastructure.Repositories;
 
-
-public class UnitOfWork(DBContext dbContext, IUserRepository users, IRefreshTokenRepository refreshTokens, IDeviceRepository devices, IUserSessionRepository sessions, ILoginAttemptRepository loginAttempts, IAuditLogRepository auditLogs,IPasswordResetTokenRepository passwordResetTokenRepository) : IUnitOfWork
+public class UnitOfWork(
+    DBContext context,
+    IUserRepository users,
+    IRefreshTokenRepository refreshTokens,
+    IDeviceRepository devices,
+    IUserSessionRepository sessions,
+    ILoginAttemptRepository loginAttempts,
+    IAuditLogRepository auditLogs,
+    IPasswordResetTokenRepository passwordResetTokenRepository,
+    IEmailOtpRepository emailOtps) : IUnitOfWork
 {
-    private readonly DBContext dbContext;
-
     private IDbContextTransaction? _currentTransaction;
 
     public IUserRepository UserRepository => users;
@@ -26,12 +31,13 @@ public class UnitOfWork(DBContext dbContext, IUserRepository users, IRefreshToke
 
     public IPasswordResetTokenRepository PasswordResetTokenRepository => passwordResetTokenRepository;
 
-    public async ValueTask DisposeAsync() => await dbContext.DisposeAsync();
+    public IEmailOtpRepository EmailOtpRepository => emailOtps;
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
 
     public int Save()
     {
-
-        return dbContext.CompleteSave();
+        return context.CompleteSave();
     }
 
     public async Task<IDbContextTransaction> BeginTransactionAsync()
@@ -39,7 +45,7 @@ public class UnitOfWork(DBContext dbContext, IUserRepository users, IRefreshToke
         if (_currentTransaction != null)
             return _currentTransaction;
 
-        _currentTransaction = await dbContext.Database.BeginTransactionAsync();
+        _currentTransaction = await context.Database.BeginTransactionAsync();
         return _currentTransaction;
     }
 
@@ -47,7 +53,7 @@ public class UnitOfWork(DBContext dbContext, IUserRepository users, IRefreshToke
     {
         try
         {
-            await dbContext.SaveChangesAsync();
+            await context.SaveChangesAsync();
             await _currentTransaction!.CommitAsync();
         }
         catch
@@ -78,10 +84,11 @@ public class UnitOfWork(DBContext dbContext, IUserRepository users, IRefreshToke
             }
         }
     }
-    IRepository<TEntity> IUnitOfWork.Repository<TEntity>() => new Repository<TEntity>(dbContext);
+
+    IRepository<TEntity> IUnitOfWork.Repository<TEntity>() => new Repository<TEntity>(context);
 
     public async Task<int> SaveAsync(CancellationToken cancellationToken = default)
     {
-        return await dbContext.CompleteSaveAsync();
+        return await context.CompleteSaveAsync();
     }
 }

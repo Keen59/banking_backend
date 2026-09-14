@@ -25,4 +25,28 @@ public class UserSessionRepository : Repository<UserSession>, IUserSessionReposi
             cancellationToken);
     }
 
+    public async Task<UserSession?> GetActiveByRefreshTokenIdAsync(
+        Guid refreshTokenId,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.UserSession
+            .Include(x => x.RefreshToken)
+            .FirstOrDefaultAsync(
+                x => x.RefreshTokenId == refreshTokenId && x.IsActive,
+                cancellationToken);
+    }
+
+    public async Task<List<UserSession>> GetActiveByRefreshTokenIdsAsync(
+        IReadOnlyCollection<Guid> refreshTokenIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (refreshTokenIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await context.UserSession
+            .Where(x => x.IsActive && refreshTokenIds.Contains(x.RefreshTokenId))
+            .ToListAsync(cancellationToken);
+    }
 }

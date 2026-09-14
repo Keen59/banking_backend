@@ -1,13 +1,29 @@
-﻿using AuthService.Application.Interfaces.Services;
+﻿using System.Security.Cryptography;
+using AuthService.Application.Interfaces.Services;
 using AuthService.Domain.Entities;
+using Microsoft.Extensions.Configuration;
 
-namespace AuthService.Infrastructure.Services
+namespace AuthService.Infrastructure.Services;
+
+public class RefreshTokenService(IConfiguration configuration) : IRefreshTokenService
 {
-    public class RefreshTokenService : IRefreshTokenService
+    public Task<RefreshToken> Generate(Guid userId, Guid? familyId = null)
     {
-        public Task<RefreshToken> Generate(Guid Id)
+        var expirationDays = int.TryParse(configuration["JwtSettings:RefreshTokenExpirationDays"], out var days)
+            ? days
+            : 7;
+        var tokenBytes = RandomNumberGenerator.GetBytes(64);
+
+        var refreshToken = new RefreshToken
         {
-            throw new NotImplementedException();
-        }
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            FamilyId = familyId ?? Guid.NewGuid(),
+            Token = Convert.ToBase64String(tokenBytes),
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(expirationDays),
+            CreatedIp = string.Empty
+        };
+
+        return Task.FromResult(refreshToken);
     }
 }

@@ -1,7 +1,6 @@
-﻿using AuthService.Application.Features.Authentication.Commands.Login;
-using FluentValidation;
+﻿using FluentValidation;
 
-namespace AuthService.Application.Features.Authentication.Commands.Login;
+namespace AuthService.Application.Commands.Login;
 
 public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
