@@ -1,6 +1,106 @@
 @AuthService.Presentation_HostAddress = http://localhost:5229
 
-GET {{AuthService.Presentation_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{AuthService.Presentation_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "Password123",
+  "deviceId": "web-chrome-1",
+  "deviceName": "Chrome",
+  "operatingSystem": "Windows",
+  "browser": "Chrome"
+}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/login/verify-otp
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "code": "123456",
+  "deviceId": "web-chrome-1",
+  "deviceName": "Chrome",
+  "operatingSystem": "Windows",
+  "browser": "Chrome"
+}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/2fa/enable
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/2fa/enable/verify
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "code": "123456"
+}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/2fa/disable
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "password": "Password123"
+}
+
+###
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/logout
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/email-otp/send
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "purpose": "EmailVerification"
+}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/email-otp/verify
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "code": "123456"
+}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+
+###
+
+POST {{AuthService.Presentation_HostAddress}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "token": "123456",
+  "newPassword": "NewPassword123"
+}
 
 ###

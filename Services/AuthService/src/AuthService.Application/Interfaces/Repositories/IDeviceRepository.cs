@@ -4,5 +4,5 @@ namespace AuthService.Application.Interfaces.Repositories;
 
 public interface IDeviceRepository : IRepository<Device>
 {
-    Task<Device> GetByIdentifierAsync(string deviceId);
+    Task<Device?> GetByIdentifierAsync(string deviceId);
 }

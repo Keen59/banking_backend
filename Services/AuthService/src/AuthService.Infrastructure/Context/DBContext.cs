@@ -16,6 +16,8 @@ namespace AuthService.Infrastructure.Context
         public DbSet<RolePermission> RolePermission { get; set; }
         public DbSet<UserRole> UserRole { get; set; }
         public DbSet<UserSession> UserSession { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetToken { get; set; }
+        public DbSet<EmailOtp> EmailOtp { get; set; }
 
 
         public DBContext(DbContextOptions options)
@@ -190,6 +192,13 @@ namespace AuthService.Infrastructure.Context
 
                 builder.HasIndex(x => x.Token)
                     .IsUnique();
+
+                builder.HasIndex(x => x.FamilyId);
+
+                builder.HasOne<RefreshToken>()
+                    .WithMany()
+                    .HasForeignKey(x => x.ReplacedByTokenId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             #endregion
@@ -263,6 +272,53 @@ namespace AuthService.Infrastructure.Context
                 builder.HasIndex(x => x.CreatedAt);
 
                 builder.HasIndex(x => x.IpAddress);
+            });
+
+            #endregion
+
+            #region PasswordResetToken
+
+            modelBuilder.Entity<PasswordResetToken>(builder =>
+            {
+                builder.HasKey(x => x.Id);
+
+                builder.Property(x => x.TokenHash)
+                    .HasMaxLength(128)
+                    .IsRequired();
+
+                builder.HasIndex(x => x.TokenHash);
+
+                builder.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            #endregion
+
+            #region EmailOtp
+
+            modelBuilder.Entity<EmailOtp>(builder =>
+            {
+                builder.HasKey(x => x.Id);
+
+                builder.Property(x => x.Email)
+                    .HasMaxLength(256)
+                    .IsRequired();
+
+                builder.Property(x => x.CodeHash)
+                    .HasMaxLength(128)
+                    .IsRequired();
+
+                builder.Property(x => x.Purpose)
+                    .HasConversion<int>();
+
+                builder.HasIndex(x => new { x.UserId, x.Purpose, x.CreatedAt });
+
+                builder.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             #endregion

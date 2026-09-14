@@ -28,6 +28,19 @@ namespace AuthService.Domain.Enums
         PasswordChanged = 3,
         TokenRefreshed = 4,
         RoleAssigned = 5,
-        PermissionGranted = 6
+        PermissionGranted = 6,
+        RefreshTokenReuseDetected = 7,
+        EmailOtpSent = 8,
+        EmailVerified = 9,
+        TwoFactorEnabled = 10,
+        TwoFactorDisabled = 11
+    }
+
+    public enum EOtpPurpose
+    {
+        EmailVerification = 1,
+        PasswordReset = 2,
+        Login = 3,
+        TwoFactorSetup = 4
     }
 }

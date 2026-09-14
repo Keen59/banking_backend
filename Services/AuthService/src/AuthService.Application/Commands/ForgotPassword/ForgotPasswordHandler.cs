@@ -1,38 +1,39 @@
-﻿using AuthService.Application.Commands.Logout;
-using AuthService.Application.Helpers;
-using AuthService.Application.Interfaces.Repositories;
+﻿using AuthService.Application.Interfaces.Repositories;
+using AuthService.Application.Interfaces.Services;
 using AuthService.Domain.Entities;
+using AuthService.Domain.Enums;
 using MediatR;
 
 namespace AuthService.Application.Commands.ForgotPassword;
 
-public class ForgotPasswordHandler(IUnitOfWork _unitOfWork) : IRequestHandler<ForgosPasswordCommand, ForgotPasswordResponse>
+public class ForgotPasswordHandler(
+    IUnitOfWork unitOfWork,
+    IEmailOtpService emailOtpService) : IRequestHandler<ForgotPasswordCommand, ForgotPasswordResponse>
 {
-    public async Task<ForgotPasswordResponse> Handle(ForgosPasswordCommand request, CancellationToken cancellationToken)
+    public async Task<ForgotPasswordResponse> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
-        var user = await _unitOfWork.UserRepository.GetByEmailAsync(request.Email);
-        if (user == null)
-            new ForgotPasswordResponse
-            {
-                IsSuccess = false,
-                Message = "Kullanıcı bulunamadı."
-            };
+        var user = await unitOfWork.UserRepository.GetByEmailAsync(request.Email, cancellationToken: cancellationToken);
 
-        var resetToken = GenerateTokenHelper.GenerateResetToken();
-        var hashedToken = GenerateTokenHelper.ComputeSha256(resetToken);
-        await _unitOfWork.PasswordResetTokenRepository.AddAsync(
-             new PasswordResetToken
-             {
-                 UserId = user.Id,
-                 TokenHash = hashedToken,
-                 ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(15),
-                 UsedAt = null
-             }, cancellationToken);
+        if (user is not null)
+        {
+            var issued = await emailOtpService.IssueAsync(user, EOtpPurpose.PasswordReset, cancellationToken);
+            if (issued)
+            {
+                await unitOfWork.AuditLogRepository.AddAsync(new AuditLog
+                {
+                    UserId = user.Id,
+                    Action = EAuditAction.EmailOtpSent,
+                    Resource = "Authentication"
+                }, cancellationToken);
+
+                await unitOfWork.SaveAsync(cancellationToken);
+            }
+        }
+
         return new ForgotPasswordResponse
         {
             IsSuccess = true,
-            Message = "Şifre sıfırlama talimatları e-posta adresinize gönderildi.",
-            ResetToken = resetToken
+            Message = "Şifre sıfırlama kodu e-posta adresinize gönderildi."
         };
     }
 }

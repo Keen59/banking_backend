@@ -11,4 +11,6 @@ public class UserInfoDto
     public string Username { get; set; } = string.Empty;
 
     public IReadOnlyCollection<string> Roles { get; set; } = [];
+
+    public bool IsTwoFactorEnabled { get; set; }
 }

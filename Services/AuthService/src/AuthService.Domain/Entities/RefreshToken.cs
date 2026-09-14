@@ -4,6 +4,8 @@
     {
         public Guid UserId { get; set; }
 
+        public Guid FamilyId { get; set; }
+
         public string Token { get; set; } = null!;
 
         public DateTimeOffset ExpiresAt { get; set; }
@@ -15,6 +17,8 @@
         public string? RevokedIp { get; set; }
 
         public Guid? DeviceId { get; set; }
+
+        public Guid? ReplacedByTokenId { get; set; }
 
         public bool IsRevoked => RevokedAt.HasValue;
 
