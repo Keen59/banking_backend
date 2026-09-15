@@ -23,7 +23,7 @@ public class UserRepository : Repository<User>, IUserRepository
             query = query.AsNoTracking();
         }
 
-        return await query.FirstOrDefaultAsync(d => d.Email == email, cancellationToken);
+        return await query.FirstOrDefaultAsync(d => d.Email.ToLower() == email.ToLower(), cancellationToken);
     }
 
     public async Task<User?> GetRolesWithPermissionsByEmailAsync(
@@ -43,7 +43,7 @@ public class UserRepository : Repository<User>, IUserRepository
         }
 
         return await query.FirstOrDefaultAsync(
-            x => x.Email == email,
+            x => x.Email.ToLower() == email.ToLower(),
             cancellationToken);
     }
 
@@ -65,6 +65,13 @@ public class UserRepository : Repository<User>, IUserRepository
 
         return await query.FirstOrDefaultAsync(
             x => x.Id == userId,
+            cancellationToken);
+    }
+
+    public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
+    {
+        return await context.User.FirstOrDefaultAsync(
+            x => x.Username.ToLower() == username.ToLower(),
             cancellationToken);
     }
 }

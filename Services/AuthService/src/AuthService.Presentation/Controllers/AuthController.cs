@@ -1,14 +1,19 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using AuthService.Application.Commands.ChangePassword;
 using AuthService.Application.Commands.DisableTwoFactor;
 using AuthService.Application.Commands.EnableTwoFactor;
 using AuthService.Application.Commands.ForgotPassword;
+using AuthService.Application.Commands.GetCurrentUser;
+using AuthService.Application.Commands.GrantRole;
 using AuthService.Application.Commands.Login;
 using AuthService.Application.Commands.Logout;
 using AuthService.Application.Commands.RefreshToken;
+using AuthService.Application.Commands.Register;
 using AuthService.Application.Commands.ResetPassword;
 using AuthService.Application.Commands.SendEmailOtp;
 using AuthService.Application.Commands.VerifyEmailOtp;
+using AuthService.Application.Commands.VerifyDisableTwoFactor;
 using AuthService.Application.Commands.VerifyEnableTwoFactor;
 using AuthService.Application.Commands.VerifyLoginOtp;
 using AuthService.Application.DTOs.Authentication;
@@ -24,6 +29,76 @@ namespace AuthService.Presentation.Controllers;
 [Route("api/auth")]
 public class AuthController(IMediator mediator) : ControllerBase
 {
+    [HttpPost("register")]
+    [AllowAnonymous]
+    public async Task<ActionResult<RegisterResponse>> Register(
+        [FromBody] RegisterRequest request,
+        CancellationToken cancellationToken)
+    {
+        var response = await mediator.Send(new RegisterCommand
+        {
+            Email = request.Email,
+            Username = request.Username,
+            Password = request.Password,
+            PhoneNumber = request.PhoneNumber
+        }, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<ActionResult<GetCurrentUserResponse>> Me(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
+
+        var response = await mediator.Send(new GetCurrentUserCommand
+        {
+            UserId = userId
+        }, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<ActionResult<ChangePasswordResponse>> ChangePassword(
+        [FromBody] ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
+
+        var response = await mediator.Send(new ChangePasswordCommand
+        {
+            UserId = userId,
+            CurrentPassword = request.CurrentPassword,
+            NewPassword = request.NewPassword
+        }, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpPost("roles/grant")]
+    [Authorize]
+    public async Task<ActionResult<GrantRoleResponse>> GrantRole(
+        [FromBody] GrantRoleRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var actorUserId))
+            return Unauthorized();
+
+        var response = await mediator.Send(new GrantRoleCommand
+        {
+            ActorUserId = actorUserId,
+            TargetUserId = request.UserId,
+            RoleName = request.RoleName
+        }, cancellationToken);
+
+        return Ok(response);
+    }
+
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponse>> Login(
@@ -110,6 +185,24 @@ public class AuthController(IMediator mediator) : ControllerBase
         {
             UserId = userId,
             Password = request.Password
+        }, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpPost("2fa/disable/verify")]
+    [Authorize]
+    public async Task<ActionResult<VerifyDisableTwoFactorResponse>> VerifyDisableTwoFactor(
+        [FromBody] VerifyTwoFactorRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
+
+        var response = await mediator.Send(new VerifyDisableTwoFactorCommand
+        {
+            UserId = userId,
+            Code = request.Code
         }, cancellationToken);
 
         return Ok(response);

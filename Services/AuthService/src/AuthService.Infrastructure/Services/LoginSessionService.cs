@@ -49,21 +49,21 @@ public class LoginSessionService(
             unitOfWork.DeviceRepository.Update(device);
         }
 
-        var refreshToken = await refreshTokenService.Generate(fullUser.Id);
-        refreshToken.CreatedIp = context.IpAddress;
-        refreshToken.DeviceId = device.Id;
+        var issuedRefreshToken = await refreshTokenService.Generate(fullUser.Id);
+        issuedRefreshToken.Entity.CreatedIp = context.IpAddress;
+        issuedRefreshToken.Entity.DeviceId = device.Id;
 
-        await unitOfWork.RefreshTokenRepository.AddAsync(refreshToken, cancellationToken);
+        await unitOfWork.RefreshTokenRepository.AddAsync(issuedRefreshToken.Entity, cancellationToken);
 
         var session = new UserSession
         {
             Id = Guid.NewGuid(),
             UserId = fullUser.Id,
-            RefreshTokenId = refreshToken.Id,
+            RefreshTokenId = issuedRefreshToken.Entity.Id,
             JwtId = Guid.NewGuid(),
             DeviceId = device.Id,
             IpAddress = context.IpAddress,
-            ExpiresAt = refreshToken.ExpiresAt,
+            ExpiresAt = issuedRefreshToken.Entity.ExpiresAt,
             LastActivityAt = DateTimeOffset.UtcNow,
             IsActive = true
         };
@@ -104,9 +104,9 @@ public class LoginSessionService(
         {
             Message = "Giriş başarılı.",
             AccessToken = accessToken.Token,
-            RefreshToken = refreshToken.Token,
+            RefreshToken = issuedRefreshToken.Plaintext,
             AccessTokenExpiresAt = accessToken.ExpiresAt,
-            RefreshTokenExpiresAt = refreshToken.ExpiresAt,
+            RefreshTokenExpiresAt = issuedRefreshToken.Entity.ExpiresAt,
             User = new UserInfoDto
             {
                 Id = fullUser.Id,
@@ -114,6 +114,7 @@ public class LoginSessionService(
                 Email = fullUser.Email,
                 Username = fullUser.Username,
                 Roles = fullUser.UserRoles.Select(x => x.Role.Name).ToList(),
+                IsEmailVerified = fullUser.IsEmailVerified,
                 IsTwoFactorEnabled = fullUser.IsTwoFactorEnabled
             }
         };

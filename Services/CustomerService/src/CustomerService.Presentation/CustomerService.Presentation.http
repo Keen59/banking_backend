@@ -1,6 +1,93 @@
 @CustomerService.Presentation_HostAddress = http://localhost:5029
-
-GET {{CustomerService.Presentation_HostAddress}}/weatherforecast/
-Accept: application/json
+@accessToken = {{accessToken}}
+@opsAccessToken = {{opsAccessToken}}
+@customerId = {{customerId}}
+@documentId = {{documentId}}
 
 ###
+
+POST {{CustomerService.Presentation_HostAddress}}/api/customers
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "firstName": "Ali",
+  "lastName": "Yılmaz",
+  "nationalId": "10000000146",
+  "dateOfBirth": "1990-01-15",
+  "nationality": "TR",
+  "email": "user@example.com",
+  "phoneNumber": "+905551112233",
+  "city": "Istanbul",
+  "district": "Kadikoy",
+  "line1": "Moda Cd. No 1",
+  "postalCode": "34710",
+  "kvkkConsent": true
+}
+
+###
+
+GET {{CustomerService.Presentation_HostAddress}}/api/customers/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{CustomerService.Presentation_HostAddress}}/api/customers/{{customerId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+PUT {{CustomerService.Presentation_HostAddress}}/api/customers/{{customerId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "phoneNumber": "+905551112244",
+  "city": "Istanbul",
+  "district": "Besiktas",
+  "line1": "Barbaros Blv. No 2",
+  "postalCode": "34353"
+}
+
+###
+
+POST {{CustomerService.Presentation_HostAddress}}/api/customers/{{customerId}}/kyc/documents
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=----KycBoundary
+
+------KycBoundary
+Content-Disposition: form-data; name="documentType"
+
+IdentityCard
+------KycBoundary
+Content-Disposition: form-data; name="file"; filename="kimlik.pdf"
+Content-Type: application/pdf
+
+< ./kimlik.pdf
+------KycBoundary--
+
+###
+
+POST {{CustomerService.Presentation_HostAddress}}/api/customers/{{customerId}}/kyc/submit
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{CustomerService.Presentation_HostAddress}}/api/customers/kyc/pending
+Authorization: Bearer {{opsAccessToken}}
+
+###
+
+GET {{CustomerService.Presentation_HostAddress}}/api/customers/{{customerId}}/kyc/documents/{{documentId}}
+Authorization: Bearer {{opsAccessToken}}
+
+###
+
+POST {{CustomerService.Presentation_HostAddress}}/api/customers/{{customerId}}/kyc/review
+Authorization: Bearer {{opsAccessToken}}
+Content-Type: application/json
+
+{
+  "approved": true
+}

@@ -17,6 +17,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 StatusCodes.Status401Unauthorized,
                 exception.Message,
                 Array.Empty<string>()),
+            InvalidOperationException => (
+                StatusCodes.Status400BadRequest,
+                exception.Message,
+                Array.Empty<string>()),
             ValidationException validationException => (
                 StatusCodes.Status400BadRequest,
                 "Doğrulama hatası.",

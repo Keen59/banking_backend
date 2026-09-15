@@ -12,14 +12,13 @@ public class RefreshTokenHandler(
     IRefreshTokenService refreshTokenService,
     IUnitOfWork unitOfWork) : IRequestHandler<RefreshTokenCommand, RefreshTokenResponse>
 {
-    private static readonly TimeSpan RotationGracePeriod = TimeSpan.FromSeconds(15);
-
     public async Task<RefreshTokenResponse> Handle(
         RefreshTokenCommand request,
         CancellationToken cancellationToken)
     {
+        var tokenHash = refreshTokenService.Hash(request.RefreshToken);
         var currentToken = await unitOfWork.RefreshTokenRepository.GetByTokenAsync(
-            request.RefreshToken,
+            tokenHash,
             cancellationToken);
 
         if (currentToken is null)
@@ -27,13 +26,11 @@ public class RefreshTokenHandler(
 
         if (currentToken.IsRevoked)
         {
-            var graceResponse = await TryCompleteWithinGracePeriod(
-                currentToken,
-                request.IpAddress,
-                cancellationToken);
-
-            if (graceResponse is not null)
-                return graceResponse;
+            var gracePlaintext = refreshTokenService.TryGetRotatedPlaintext(tokenHash);
+            if (gracePlaintext is not null)
+            {
+                return await CompleteGraceRefresh(currentToken, gracePlaintext, request.IpAddress, cancellationToken);
+            }
 
             await RevokeFamilyAndSessions(currentToken.FamilyId, request.IpAddress, cancellationToken);
 
@@ -62,23 +59,25 @@ public class RefreshTokenHandler(
 
         var user = await GetActiveUser(currentToken.UserId, cancellationToken);
 
-        var newRefreshToken = await refreshTokenService.Generate(user.Id, currentToken.FamilyId);
-        newRefreshToken.CreatedIp = request.IpAddress;
-        newRefreshToken.DeviceId = currentToken.DeviceId;
+        var issuedRefreshToken = await refreshTokenService.Generate(user.Id, currentToken.FamilyId);
+        issuedRefreshToken.Entity.CreatedIp = request.IpAddress;
+        issuedRefreshToken.Entity.DeviceId = currentToken.DeviceId;
 
         currentToken.RevokedAt = DateTimeOffset.UtcNow;
         currentToken.RevokedIp = request.IpAddress;
-        currentToken.ReplacedByTokenId = newRefreshToken.Id;
+        currentToken.ReplacedByTokenId = issuedRefreshToken.Entity.Id;
 
-        session.RefreshTokenId = newRefreshToken.Id;
-        session.ExpiresAt = newRefreshToken.ExpiresAt;
+        session.RefreshTokenId = issuedRefreshToken.Entity.Id;
+        session.ExpiresAt = issuedRefreshToken.Entity.ExpiresAt;
         session.LastActivityAt = DateTimeOffset.UtcNow;
         session.IpAddress = request.IpAddress;
         session.JwtId = Guid.NewGuid();
 
-        await unitOfWork.RefreshTokenRepository.AddAsync(newRefreshToken, cancellationToken);
+        await unitOfWork.RefreshTokenRepository.AddAsync(issuedRefreshToken.Entity, cancellationToken);
 
         var accessToken = await GenerateAccessToken(user, session);
+
+        refreshTokenService.RememberRotation(tokenHash, issuedRefreshToken.Plaintext);
 
         await unitOfWork.AuditLogRepository.AddAsync(new AuditLog
         {
@@ -90,31 +89,25 @@ public class RefreshTokenHandler(
 
         await unitOfWork.SaveAsync(cancellationToken);
 
-        return MapResponse(accessToken, newRefreshToken, user);
+        return MapResponse(accessToken, issuedRefreshToken.Plaintext, issuedRefreshToken.Entity.ExpiresAt, user);
     }
 
-    private async Task<RefreshTokenResponse?> TryCompleteWithinGracePeriod(
+    private async Task<RefreshTokenResponse> CompleteGraceRefresh(
         Domain.Entities.RefreshToken currentToken,
+        string rotatedPlaintext,
         string ipAddress,
         CancellationToken cancellationToken)
     {
-        if (!currentToken.ReplacedByTokenId.HasValue ||
-            !currentToken.RevokedAt.HasValue ||
-            DateTimeOffset.UtcNow - currentToken.RevokedAt.Value > RotationGracePeriod)
-        {
-            return null;
-        }
+        if (!currentToken.ReplacedByTokenId.HasValue)
+            throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş token.");
 
         var replacement = await unitOfWork.RefreshTokenRepository.GetByIdAsync(currentToken.ReplacedByTokenId.Value);
         if (replacement is null || replacement.IsRevoked || replacement.ExpiresAt <= DateTimeOffset.UtcNow)
-            return null;
+            throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş token.");
 
         var session = await unitOfWork.UserSessionRepository.GetActiveByRefreshTokenIdAsync(
             replacement.Id,
-            cancellationToken);
-
-        if (session is null)
-            return null;
+            cancellationToken) ?? throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş token.");
 
         var user = await GetActiveUser(currentToken.UserId, cancellationToken);
 
@@ -125,7 +118,7 @@ public class RefreshTokenHandler(
         var accessToken = await GenerateAccessToken(user, session);
         await unitOfWork.SaveAsync(cancellationToken);
 
-        return MapResponse(accessToken, replacement, user);
+        return MapResponse(accessToken, rotatedPlaintext, replacement.ExpiresAt, user);
     }
 
     private async Task RevokeFamilyAndSessions(
@@ -185,16 +178,17 @@ public class RefreshTokenHandler(
 
     private static RefreshTokenResponse MapResponse(
         AccessTokenDto accessToken,
-        Domain.Entities.RefreshToken refreshToken,
+        string refreshToken,
+        DateTimeOffset refreshTokenExpiresAt,
         User user)
     {
         return new RefreshTokenResponse
         {
             Message = "Token yenilendi.",
             AccessToken = accessToken.Token,
-            RefreshToken = refreshToken.Token,
+            RefreshToken = refreshToken,
             AccessTokenExpiresAt = accessToken.ExpiresAt,
-            RefreshTokenExpiresAt = refreshToken.ExpiresAt,
+            RefreshTokenExpiresAt = refreshTokenExpiresAt,
             User = new UserInfoDto
             {
                 Id = user.Id,
@@ -204,6 +198,7 @@ public class RefreshTokenHandler(
                 Roles = user.UserRoles
                     .Select(x => x.Role.Name)
                     .ToList(),
+                IsEmailVerified = user.IsEmailVerified,
                 IsTwoFactorEnabled = user.IsTwoFactorEnabled
             }
         };

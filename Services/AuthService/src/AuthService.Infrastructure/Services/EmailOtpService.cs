@@ -111,6 +111,7 @@ public class EmailOtpService(
             EOtpPurpose.PasswordReset => "şifre sıfırlama",
             EOtpPurpose.Login => "giriş doğrulama",
             EOtpPurpose.TwoFactorSetup => "iki faktörlü doğrulama kurulumu",
+            EOtpPurpose.TwoFactorDisable => "iki faktörlü doğrulamayı kapatma",
             _ => "doğrulama"
         };
 

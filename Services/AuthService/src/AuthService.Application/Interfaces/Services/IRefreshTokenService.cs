@@ -1,8 +1,14 @@
-﻿using AuthService.Domain.Entities;
+﻿using AuthService.Application.DTOs.Authentication;
 
 namespace AuthService.Application.Interfaces.Services;
 
 public interface IRefreshTokenService
 {
-    Task<RefreshToken> Generate(Guid userId, Guid? familyId = null);
+    Task<IssuedRefreshToken> Generate(Guid userId, Guid? familyId = null);
+
+    string Hash(string plaintext);
+
+    void RememberRotation(string previousTokenHash, string newPlaintext);
+
+    string? TryGetRotatedPlaintext(string previousTokenHash);
 }

@@ -33,7 +33,8 @@ namespace AuthService.Domain.Enums
         EmailOtpSent = 8,
         EmailVerified = 9,
         TwoFactorEnabled = 10,
-        TwoFactorDisabled = 11
+        TwoFactorDisabled = 11,
+        UserRegistered = 12
     }
 
     public enum EOtpPurpose
@@ -41,6 +42,7 @@ namespace AuthService.Domain.Enums
         EmailVerification = 1,
         PasswordReset = 2,
         Login = 3,
-        TwoFactorSetup = 4
+        TwoFactorSetup = 4,
+        TwoFactorDisable = 5
     }
 }

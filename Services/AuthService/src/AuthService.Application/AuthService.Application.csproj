@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AuthService.Domain\AuthService.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\BuildingBlocks\src\Banking.Contracts\Banking.Contracts.csproj" />
   </ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="MediatR" Version="13.1.0" />

@@ -1,4 +1,6 @@
 ﻿using AuthService.Domain.Entities;
+using AuthService.Infrastructure.Seed;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Infrastructure.Context
@@ -109,6 +111,22 @@ namespace AuthService.Infrastructure.Context
 
                 builder.HasIndex(x => x.Name)
                     .IsUnique();
+
+                builder.HasData(
+                    new Role
+                    {
+                        Id = IdentitySeed.CustomerRoleId,
+                        Name = IdentitySeed.CustomerRoleName,
+                        Description = "Bireysel müşteri",
+                        CreatedAt = IdentitySeed.SeededAt
+                    },
+                    new Role
+                    {
+                        Id = IdentitySeed.OperationsRoleId,
+                        Name = IdentitySeed.OperationsRoleName,
+                        Description = "KYC ve müşteri operasyonu",
+                        CreatedAt = IdentitySeed.SeededAt
+                    });
             });
 
             #endregion
@@ -128,6 +146,29 @@ namespace AuthService.Infrastructure.Context
 
                 builder.HasIndex(x => x.Code)
                     .IsUnique();
+
+                builder.HasData(
+                    new Permission
+                    {
+                        Id = IdentitySeed.KycReviewPermissionId,
+                        Code = IdentitySeed.KycReviewPermissionCode,
+                        Description = "KYC inceleme ve onay",
+                        CreatedAt = IdentitySeed.SeededAt
+                    },
+                    new Permission
+                    {
+                        Id = IdentitySeed.CustomersReadPermissionId,
+                        Code = IdentitySeed.CustomersReadPermissionCode,
+                        Description = "Tüm müşteri kayıtlarını görüntüleme",
+                        CreatedAt = IdentitySeed.SeededAt
+                    },
+                    new Permission
+                    {
+                        Id = IdentitySeed.RolesAssignPermissionId,
+                        Code = IdentitySeed.RolesAssignPermissionCode,
+                        Description = "Rol atama",
+                        CreatedAt = IdentitySeed.SeededAt
+                    });
             });
 
             #endregion
@@ -171,6 +212,23 @@ namespace AuthService.Infrastructure.Context
                     .WithMany(x => x.RolePermissions)
                     .HasForeignKey(x => x.PermissionId);
             });
+
+            modelBuilder.Entity<RolePermission>().HasData(
+                new RolePermission
+                {
+                    RoleId = IdentitySeed.OperationsRoleId,
+                    PermissionId = IdentitySeed.KycReviewPermissionId
+                },
+                new RolePermission
+                {
+                    RoleId = IdentitySeed.OperationsRoleId,
+                    PermissionId = IdentitySeed.CustomersReadPermissionId
+                },
+                new RolePermission
+                {
+                    RoleId = IdentitySeed.OperationsRoleId,
+                    PermissionId = IdentitySeed.RolesAssignPermissionId
+                });
 
             #endregion
 
@@ -352,6 +410,10 @@ namespace AuthService.Infrastructure.Context
             });
 
             #endregion
+
+            modelBuilder.AddInboxStateEntity();
+            modelBuilder.AddOutboxMessageEntity();
+            modelBuilder.AddOutboxStateEntity();
         }
      
         public async Task<int> CompleteSaveAsync()

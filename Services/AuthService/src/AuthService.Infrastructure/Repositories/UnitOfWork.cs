@@ -13,7 +13,8 @@ public class UnitOfWork(
     ILoginAttemptRepository loginAttempts,
     IAuditLogRepository auditLogs,
     IPasswordResetTokenRepository passwordResetTokenRepository,
-    IEmailOtpRepository emailOtps) : IUnitOfWork
+    IEmailOtpRepository emailOtps,
+    IRoleRepository roles) : IUnitOfWork
 {
     private IDbContextTransaction? _currentTransaction;
 
@@ -32,6 +33,8 @@ public class UnitOfWork(
     public IPasswordResetTokenRepository PasswordResetTokenRepository => passwordResetTokenRepository;
 
     public IEmailOtpRepository EmailOtpRepository => emailOtps;
+
+    public IRoleRepository RoleRepository => roles;
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 

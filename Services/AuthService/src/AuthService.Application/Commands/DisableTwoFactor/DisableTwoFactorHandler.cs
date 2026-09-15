@@ -8,7 +8,8 @@ namespace AuthService.Application.Commands.DisableTwoFactor;
 
 public class DisableTwoFactorHandler(
     IUnitOfWork unitOfWork,
-    IPasswordHasherService passwordHasher) : IRequestHandler<DisableTwoFactorCommand, DisableTwoFactorResponse>
+    IPasswordHasherService passwordHasher,
+    IEmailOtpService emailOtpService) : IRequestHandler<DisableTwoFactorCommand, DisableTwoFactorResponse>
 {
     public async Task<DisableTwoFactorResponse> Handle(
         DisableTwoFactorCommand request,
@@ -28,21 +29,22 @@ public class DisableTwoFactorHandler(
             };
         }
 
-        user.IsTwoFactorEnabled = false;
-        unitOfWork.UserRepository.Update(user);
-
-        await unitOfWork.AuditLogRepository.AddAsync(new AuditLog
+        var issued = await emailOtpService.IssueAsync(user, EOtpPurpose.TwoFactorDisable, cancellationToken);
+        if (issued)
         {
-            UserId = user.Id,
-            Action = EAuditAction.TwoFactorDisabled,
-            Resource = "Authentication"
-        }, cancellationToken);
+            await unitOfWork.AuditLogRepository.AddAsync(new AuditLog
+            {
+                UserId = user.Id,
+                Action = EAuditAction.EmailOtpSent,
+                Resource = "Authentication"
+            }, cancellationToken);
 
-        await unitOfWork.SaveAsync(cancellationToken);
+            await unitOfWork.SaveAsync(cancellationToken);
+        }
 
         return new DisableTwoFactorResponse
         {
-            Message = "İki faktörlü doğrulama kapatıldı."
+            Message = "Doğrulama kodu e-posta adresinize gönderildi."
         };
     }
 }

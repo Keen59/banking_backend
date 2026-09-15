@@ -19,7 +19,8 @@ public class VerifyLoginOtpHandler(
         if (user is null ||
             !user.IsTwoFactorEnabled ||
             user.Status != EUserStatus.Active ||
-            !user.IsEmailVerified)
+            !user.IsEmailVerified ||
+            (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow))
         {
             await AddFailedOtpAttempt(request, user?.Id, cancellationToken);
             throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş kod.");

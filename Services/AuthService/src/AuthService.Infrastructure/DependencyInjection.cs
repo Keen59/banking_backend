@@ -2,6 +2,7 @@ using System.Text;
 using AuthService.Application.Interfaces.Repositories;
 using AuthService.Application.Interfaces.Services;
 using AuthService.Infrastructure.Context;
+using AuthService.Infrastructure.Messaging;
 using AuthService.Infrastructure.Repositories;
 using AuthService.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -27,14 +28,26 @@ public static class DependencyInjection
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.AddScoped<IEmailOtpRepository, EmailOtpRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddSingleton<IPasswordHasherService, PaswordHasherService>();
         services.AddSingleton<IJwtService, JwtService>();
         services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
-        services.AddScoped<IEmailSender, LoggingEmailSender>();
+        var emailProvider = configuration["Email:Provider"] ?? "Logging";
+        if (string.Equals(emailProvider, "Smtp", StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(configuration["Email:Host"]))
+        {
+            services.AddScoped<IEmailSender, SmtpEmailSender>();
+        }
+        else
+        {
+            services.AddScoped<IEmailSender, LoggingEmailSender>();
+        }
         services.AddScoped<IEmailOtpService, EmailOtpService>();
         services.AddScoped<ILoginSessionService, LoginSessionService>();
+        services.AddScoped<IIntegrationEventPublisher, MassTransitIntegrationEventPublisher>();
+        services.AddAuthMessageBus<DBContext>(configuration);
 
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"]
