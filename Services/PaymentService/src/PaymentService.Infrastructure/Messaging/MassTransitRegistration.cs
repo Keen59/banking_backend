@@ -1,20 +1,21 @@
-using LedgerService.Infrastructure.Consumers;
-using LedgerService.Infrastructure.Context;
+using PaymentService.Infrastructure.Consumers;
+using PaymentService.Infrastructure.Context;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace LedgerService.Infrastructure.Messaging;
+namespace PaymentService.Infrastructure.Messaging;
 
 public static class MassTransitRegistration
 {
-    public static void AddLedgerMessageBus(this IServiceCollection services, IConfiguration configuration)
+    public static void AddPaymentMessageBus(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddMassTransit(bus =>
         {
             bus.SetKebabCaseEndpointNameFormatter();
             bus.AddConsumer<AccountOpenedConsumer>();
-            bus.AddConsumer<TransferRequestedConsumer>();
+            bus.AddConsumer<TransferCompletedConsumer>();
+            bus.AddConsumer<TransferRejectedConsumer>();
 
             bus.AddEntityFrameworkOutbox<DBContext>(outbox =>
             {

@@ -1,0 +1,37 @@
+@PaymentService.Presentation_HostAddress = http://localhost:5059
+@accessToken = {{accessToken}}
+@opsAccessToken = {{opsAccessToken}}
+@sourceAccountId = {{sourceAccountId}}
+@destinationAccountId = {{destinationAccountId}}
+@transferId = {{transferId}}
+@idempotencyKey = {{idempotencyKey}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/transfers
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "sourceAccountId": "{{sourceAccountId}}",
+  "destinationAccountId": "{{destinationAccountId}}",
+  "amount": 100,
+  "currency": "TRY",
+  "description": "İç virman"
+}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/transfers/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/transfers/{{transferId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/transfers/{{transferId}}
+Authorization: Bearer {{opsAccessToken}}

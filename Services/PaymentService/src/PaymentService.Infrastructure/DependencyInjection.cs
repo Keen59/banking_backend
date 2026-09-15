@@ -1,17 +1,18 @@
 using System.Text;
 using Banking.Contracts.Authorization;
-using LedgerService.Application.Interfaces.Repositories;
-using LedgerService.Application.Interfaces.Services;
-using LedgerService.Infrastructure.Context;
-using LedgerService.Infrastructure.Messaging;
-using LedgerService.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using PaymentService.Application.Interfaces.Repositories;
+using PaymentService.Application.Interfaces.Services;
+using PaymentService.Application.Options;
+using PaymentService.Infrastructure.Context;
+using PaymentService.Infrastructure.Messaging;
+using PaymentService.Infrastructure.Repositories;
 
-namespace LedgerService.Infrastructure;
+namespace PaymentService.Infrastructure;
 
 public static class DependencyInjection
 {
@@ -20,12 +21,12 @@ public static class DependencyInjection
         services.AddDbContext<DBContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddScoped<ILedgerAccountRepository, LedgerAccountRepository>();
-        services.AddScoped<IJournalEntryRepository, JournalEntryRepository>();
-        services.AddScoped<IAccountHoldRepository, AccountHoldRepository>();
+        services.Configure<TransferLimitOptions>(configuration.GetSection(TransferLimitOptions.SectionName));
+        services.AddScoped<IAccountProjectionRepository, AccountProjectionRepository>();
+        services.AddScoped<ITransferRepository, TransferRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IIntegrationEventPublisher, MassTransitIntegrationEventPublisher>();
-        services.AddLedgerMessageBus(configuration);
+        services.AddPaymentMessageBus(configuration);
 
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"]
