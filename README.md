@@ -84,6 +84,20 @@ dotnet ef database update --project Services/AccountService/src/AccountService.I
 
 Connection strings in `appsettings.json` are for local development, not production secrets.
 
+## Tests
+
+xUnit + NSubstitute. No HTTP or RabbitMQ. Run:
+
+```powershell
+dotnet test
+```
+
+| Project | What is locked |
+|---|---|
+| `AuthService.UnitTests` | Refresh rotation; reused refresh token outside grace → 401 and family revoke; login OTP success/fail; 2FA enable/disable |
+| `CustomerService.UnitTests` | `UserRegistered` does not insert the same `CustomerId` twice; `POST .../kyc/review` requires `kyc:review` |
+| `AccountService.UnitTests` | TR IBAN ISO 7064 mod-97; `KycApproved` does not open a second `(CustomerId, DemandDeposit, TRY)` account |
+
 ---
 
 # Türkçe
@@ -171,3 +185,17 @@ dotnet ef database update --project Services/AccountService/src/AccountService.I
 ```
 
 Geliştirme bağlantı bilgileri `appsettings.json` içindedir; üretim sırrı değildir.
+
+## Testler
+
+xUnit + NSubstitute. HTTP ve RabbitMQ yok. Çalıştırma:
+
+```powershell
+dotnet test
+```
+
+| Proje | Kilitlenen kural |
+|---|---|
+| `AuthService.UnitTests` | Refresh rotation; grace dışı reuse → 401 ve family revoke; login OTP; 2FA aç/kapa |
+| `CustomerService.UnitTests` | `UserRegistered` aynı `CustomerId` ikinci kayıt açmaz; `POST .../kyc/review` `kyc:review` ister |
+| `AccountService.UnitTests` | TR IBAN ISO 7064 mod-97; `KycApproved` ikinci `(CustomerId, DemandDeposit, TRY)` hesap açmaz |
