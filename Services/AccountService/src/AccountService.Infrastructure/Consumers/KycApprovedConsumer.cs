@@ -9,7 +9,8 @@ namespace AccountService.Infrastructure.Consumers;
 
 public sealed class KycApprovedConsumer(
     IUnitOfWork unitOfWork,
-    IIbanService ibanService) : IConsumer<KycApproved>
+    IIbanService ibanService,
+    IIntegrationEventPublisher eventPublisher) : IConsumer<KycApproved>
 {
     private const string Currency = "TRY";
 
@@ -26,8 +27,7 @@ public sealed class KycApprovedConsumer(
             return;
 
         var (iban, accountNumber) = await ibanService.GenerateAsync(context.CancellationToken);
-
-        await unitOfWork.AccountRepository.AddAsync(new Account
+        var account = new Account
         {
             Id = Guid.NewGuid(),
             CustomerId = message.CustomerId,
@@ -37,8 +37,18 @@ public sealed class KycApprovedConsumer(
             ProductType = EAccountProductType.DemandDeposit,
             Status = EAccountStatus.Active,
             Currency = Currency
-        }, context.CancellationToken);
+        };
 
+        await unitOfWork.AccountRepository.AddAsync(account, context.CancellationToken);
+        await eventPublisher.PublishAsync(
+            new AccountOpened(
+                account.Id,
+                account.CustomerId,
+                account.CifNumber,
+                account.Iban,
+                account.Currency,
+                DateTimeOffset.UtcNow),
+            context.CancellationToken);
         await unitOfWork.SaveAsync(context.CancellationToken);
     }
 }

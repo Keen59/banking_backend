@@ -1,0 +1,24 @@
+@LedgerService.Presentation_HostAddress = http://localhost:5049
+@accessToken = {{accessToken}}
+@opsAccessToken = {{opsAccessToken}}
+@accountId = {{accountId}}
+
+###
+
+GET {{LedgerService.Presentation_HostAddress}}/api/ledger/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{LedgerService.Presentation_HostAddress}}/api/ledger/accounts/{{accountId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{LedgerService.Presentation_HostAddress}}/api/ledger/accounts/{{accountId}}/movements
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{LedgerService.Presentation_HostAddress}}/api/ledger/accounts/{{accountId}}
+Authorization: Bearer {{opsAccessToken}}

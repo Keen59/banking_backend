@@ -38,7 +38,7 @@ Inter-service communication is **MassTransit + RabbitMQ**. There is no synchrono
 
 ## Current status
 
-Order: Auth → Customer (CIF/KYC) → Account. An account is not opened before KYC approval. Ledger, balances, FAST/EFT, and cards are out of this slice.
+Order: Auth → Customer (CIF/KYC) → Account → Ledger. An account is not opened before KYC approval. Ledger holds balances; FAST/EFT and cards are out of this slice.
 
 ```
 Register (Auth)
@@ -48,6 +48,8 @@ Register (Auth)
 Onboarding + documents + kyc:review
   → KycApproved (outbox → RabbitMQ)
   → AccountService demand-deposit TRY account + TR IBAN
+  → AccountOpened (outbox → RabbitMQ)
+  → LedgerService projection, opening balance 0
 ```
 
 | Service | HTTP | Database |
@@ -55,6 +57,7 @@ Onboarding + documents + kyc:review
 | AuthService | `http://localhost:5229` | `BankingAuthServiceDb` |
 | CustomerService | `http://localhost:5029` | `BankingCustomerServiceDb` |
 | AccountService | `http://localhost:5039` | `BankingAccountServiceDb` |
+| LedgerService | `http://localhost:5049` | `BankingLedgerServiceDb` |
 
 JWT uses the same `JwtSettings` on every service. Claim: `customer_id`. Operations permissions: `kyc:review`, `customers:read`, `roles:assign`.
 
@@ -70,7 +73,11 @@ The `UserRegistered` consumer opens a CIF stub. The same `CustomerId` is not ins
 
 ### AccountService
 
-Accounts are not created with HTTP POST. The `KycApproved` consumer inserts an `Active` demand-deposit TRY account and a TR IBAN (ISO 7064 mod-97, 26 characters) when `(CustomerId, DemandDeposit, TRY)` does not exist. Reads: `GET /api/accounts/me` (`customer_id`), `GET /api/accounts/{id}` (owner or `customers:read`).
+Accounts are not created with HTTP POST. The `KycApproved` consumer inserts an `Active` demand-deposit TRY account and a TR IBAN (ISO 7064 mod-97, 26 characters) when `(CustomerId, DemandDeposit, TRY)` does not exist, then publishes `AccountOpened` via the EF outbox. Reads: `GET /api/accounts/me` (`customer_id`), `GET /api/accounts/{id}` (owner or `customers:read`).
+
+### LedgerService
+
+Balances are not stored on `Account`. The `AccountOpened` consumer opens a customer demand-deposit projection (liability) with ledger/hold/available = 0. Double-entry journals must have debit = credit and an idempotency key. Hold reduces available, not ledger. No HTTP posting, FAST, or EFT in this slice. Reads: `GET /api/ledger/me`, `GET /api/ledger/accounts/{accountId}`, `GET /api/ledger/accounts/{accountId}/movements` (`customer_id` or `customers:read`). `{accountId}` is the AccountService id.
 
 ## Run
 
@@ -80,6 +87,7 @@ PostgreSQL (`localhost:5432`) and RabbitMQ (`localhost:5672`) must be up. Apply 
 dotnet ef database update --project Services/AuthService/src/AuthService.Infrastructure --startup-project Services/AuthService/src/AuthService.Presentation
 dotnet ef database update --project Services/CustomerService/src/CustomerService.Infrastructure --startup-project Services/CustomerService/src/CustomerService.Presentation
 dotnet ef database update --project Services/AccountService/src/AccountService.Infrastructure --startup-project Services/AccountService/src/AccountService.Presentation
+dotnet ef database update --project Services/LedgerService/src/LedgerService.Infrastructure --startup-project Services/LedgerService/src/LedgerService.Presentation
 ```
 
 Connection strings in `appsettings.json` are for local development, not production secrets.
@@ -96,7 +104,8 @@ dotnet test
 |---|---|
 | `AuthService.UnitTests` | Refresh rotation; reused refresh token outside grace → 401 and family revoke; login OTP success/fail; 2FA enable/disable |
 | `CustomerService.UnitTests` | `UserRegistered` does not insert the same `CustomerId` twice; `POST .../kyc/review` requires `kyc:review` |
-| `AccountService.UnitTests` | TR IBAN ISO 7064 mod-97; `KycApproved` does not open a second `(CustomerId, DemandDeposit, TRY)` account |
+| `AccountService.UnitTests` | TR IBAN ISO 7064 mod-97; `KycApproved` does not open a second `(CustomerId, DemandDeposit, TRY)` account; `AccountOpened` is published on create |
+| `LedgerService.UnitTests` | `AccountOpened` projection is idempotent and posts nothing; debit must equal credit; duplicate idempotency key does not double-post; customer credit raises ledger/available; hold/release changes available only |
 
 ---
 
@@ -140,7 +149,7 @@ Servisler arası iletişim: **MassTransit + RabbitMQ**. Senkron HTTP yok. Kayıt
 
 ## Mevcut durum
 
-Sıra: Auth → Customer (CIF/KYC) → Account. Hesap, KYC onayı olmadan açılmaz. Ledger, bakiye, FAST/EFT, kart bu dilimde yok.
+Sıra: Auth → Customer (CIF/KYC) → Account → Ledger. Hesap, KYC onayı olmadan açılmaz. Bakiye ledger’dadır. FAST/EFT ve kart bu dilimde yok.
 
 ```
 Kayıt (Auth)
@@ -150,6 +159,8 @@ Kayıt (Auth)
 Onboarding + belge + kyc:review
   → KycApproved (outbox → RabbitMQ)
   → AccountService vadesiz TRY hesap + TR IBAN
+  → AccountOpened (outbox → RabbitMQ)
+  → LedgerService projeksiyon, opening balance 0
 ```
 
 | Servis | HTTP | Veritabanı |
@@ -157,6 +168,7 @@ Onboarding + belge + kyc:review
 | AuthService | `http://localhost:5229` | `BankingAuthServiceDb` |
 | CustomerService | `http://localhost:5029` | `BankingCustomerServiceDb` |
 | AccountService | `http://localhost:5039` | `BankingAccountServiceDb` |
+| LedgerService | `http://localhost:5049` | `BankingLedgerServiceDb` |
 
 JWT tüm servislerde aynı `JwtSettings`. Claim: `customer_id`. Operasyon: `permission` (`kyc:review`, `customers:read`, `roles:assign`).
 
@@ -172,7 +184,11 @@ Refresh token, e-posta OTP, 2FA, token rotation. Kayıtta `UserRegistered` outbo
 
 ### AccountService
 
-Hesap HTTP POST ile açılmaz. `KycApproved` consumer `(CustomerId, DemandDeposit, TRY)` yoksa `Active` vadesiz TRY hesap ve TR IBAN (ISO 7064 mod-97, 26 karakter) yazar. Okuma: `GET /api/accounts/me` (`customer_id`), `GET /api/accounts/{id}` (sahip veya `customers:read`).
+Hesap HTTP POST ile açılmaz. `KycApproved` consumer `(CustomerId, DemandDeposit, TRY)` yoksa `Active` vadesiz TRY hesap ve TR IBAN (ISO 7064 mod-97, 26 karakter) yazar, ardından `AccountOpened` outbox ile yayınlanır. Okuma: `GET /api/accounts/me` (`customer_id`), `GET /api/accounts/{id}` (sahip veya `customers:read`).
+
+### LedgerService
+
+Bakiye `Account` tablosunda tutulmaz. `AccountOpened` consumer müşteri vadesiz yükümlülük projeksiyonunu ledger/hold/available = 0 ile açar. Çift kayıt journal: debit = credit, idempotency key. Hold available’ı düşürür, ledger’ı düşürmez. HTTP posting, FAST, EFT yok bu dilimde. Okuma: `GET /api/ledger/me`, `GET /api/ledger/accounts/{accountId}`, `GET /api/ledger/accounts/{accountId}/movements` (`customer_id` veya `customers:read`). `{accountId}` AccountService id’sidir.
 
 ## Çalıştırma
 
@@ -182,6 +198,7 @@ PostgreSQL (`localhost:5432`) ve RabbitMQ (`localhost:5672`) ayakta olsun. Her s
 dotnet ef database update --project Services/AuthService/src/AuthService.Infrastructure --startup-project Services/AuthService/src/AuthService.Presentation
 dotnet ef database update --project Services/CustomerService/src/CustomerService.Infrastructure --startup-project Services/CustomerService/src/CustomerService.Presentation
 dotnet ef database update --project Services/AccountService/src/AccountService.Infrastructure --startup-project Services/AccountService/src/AccountService.Presentation
+dotnet ef database update --project Services/LedgerService/src/LedgerService.Infrastructure --startup-project Services/LedgerService/src/LedgerService.Presentation
 ```
 
 Geliştirme bağlantı bilgileri `appsettings.json` içindedir; üretim sırrı değildir.
@@ -198,4 +215,5 @@ dotnet test
 |---|---|
 | `AuthService.UnitTests` | Refresh rotation; grace dışı reuse → 401 ve family revoke; login OTP; 2FA aç/kapa |
 | `CustomerService.UnitTests` | `UserRegistered` aynı `CustomerId` ikinci kayıt açmaz; `POST .../kyc/review` `kyc:review` ister |
-| `AccountService.UnitTests` | TR IBAN ISO 7064 mod-97; `KycApproved` ikinci `(CustomerId, DemandDeposit, TRY)` hesap açmaz |
+| `AccountService.UnitTests` | TR IBAN ISO 7064 mod-97; `KycApproved` ikinci `(CustomerId, DemandDeposit, TRY)` hesap açmaz; açılışta `AccountOpened` yayınlanır |
+| `LedgerService.UnitTests` | `AccountOpened` projeksiyonu idempotent ve posting yok; debit = credit; aynı idempotency key ikinci kayıt yazmaz; müşteri credit ledger/available artırır; hold/release yalnızca available değiştirir |

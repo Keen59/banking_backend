@@ -1,18 +1,16 @@
 using System.Text;
-using AccountService.Application.Interfaces.Repositories;
-using AccountService.Application.Interfaces.Services;
-using AccountService.Infrastructure.Context;
-using AccountService.Infrastructure.Messaging;
-using AccountService.Infrastructure.Repositories;
-using AccountService.Infrastructure.Services;
 using Banking.Contracts.Authorization;
+using LedgerService.Application.Interfaces.Repositories;
+using LedgerService.Infrastructure.Context;
+using LedgerService.Infrastructure.Messaging;
+using LedgerService.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AccountService.Infrastructure;
+namespace LedgerService.Infrastructure;
 
 public static class DependencyInjection
 {
@@ -21,11 +19,11 @@ public static class DependencyInjection
         services.AddDbContext<DBContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<ILedgerAccountRepository, LedgerAccountRepository>();
+        services.AddScoped<IJournalEntryRepository, JournalEntryRepository>();
+        services.AddScoped<IAccountHoldRepository, AccountHoldRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IIbanService, IbanService>();
-        services.AddScoped<IIntegrationEventPublisher, MassTransitIntegrationEventPublisher>();
-        services.AddAccountMessageBus(configuration);
+        services.AddLedgerMessageBus(configuration);
 
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"]
