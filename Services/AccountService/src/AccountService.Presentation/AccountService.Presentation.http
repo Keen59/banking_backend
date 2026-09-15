@@ -1,0 +1,19 @@
+@AccountService.Presentation_HostAddress = http://localhost:5039
+@accessToken = {{accessToken}}
+@opsAccessToken = {{opsAccessToken}}
+@accountId = {{accountId}}
+
+###
+
+GET {{AccountService.Presentation_HostAddress}}/api/accounts/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{AccountService.Presentation_HostAddress}}/api/accounts/{{accountId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{AccountService.Presentation_HostAddress}}/api/accounts/{{accountId}}
+Authorization: Bearer {{opsAccessToken}}
