@@ -1,0 +1,13 @@
+---
+description: Update README whenever a feature is implemented
+alwaysApply: true
+---
+
+# README
+
+After implementing or changing a feature, update `README.md` in the same turn.
+
+- English is the main document.
+- Keep a matching Turkish translation under a `# Türkçe` heading at the bottom (after `---`).
+- Update Current status / Mevcut durum (and related service sections) so both languages stay in sync.
+- Do not add a chat-prompt dump of what the user told Cursor.
