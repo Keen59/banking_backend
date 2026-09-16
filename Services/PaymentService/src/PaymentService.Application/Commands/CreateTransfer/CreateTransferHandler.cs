@@ -1,6 +1,7 @@
 using Banking.Contracts.Events;
 using MediatR;
 using Microsoft.Extensions.Options;
+using PaymentService.Application.Helpers;
 using PaymentService.Application.Interfaces.Repositories;
 using PaymentService.Application.Interfaces.Services;
 using PaymentService.Application.Mapping;
@@ -61,11 +62,9 @@ public class CreateTransferHandler(
         if (!string.Equals(destination.Currency, request.Currency, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Destination account currency does not match the transfer.");
 
-        var dayStart = DateTime.UtcNow.Date;
-        var dayStartOffset = new DateTimeOffset(dayStart, TimeSpan.Zero);
-        var dailyUsed = await unitOfWork.Transfers.SumCountedTowardDailyLimitAsync(
+        var dailyUsed = await PaymentDailyLimit.SumCountedAsync(
+            unitOfWork,
             request.CustomerId,
-            dayStartOffset,
             cancellationToken);
 
         if (dailyUsed + request.Amount > limits.DailyAmount)

@@ -5,6 +5,8 @@
 @destinationAccountId = {{destinationAccountId}}
 @transferId = {{transferId}}
 @idempotencyKey = {{idempotencyKey}}
+@destinationIban = {{destinationIban}}
+@sourceIban = {{sourceIban}}
 
 ###
 
@@ -33,5 +35,122 @@ Authorization: Bearer {{accessToken}}
 
 ###
 
-GET {{PaymentService.Presentation_HostAddress}}/api/payments/transfers/{{transferId}}
+@fastPaymentId = {{fastPaymentId}}
+@creditId = {{creditId}}
+@destinationIban = {{destinationIban}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/test-credits
 Authorization: Bearer {{opsAccessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "accountId": "{{sourceAccountId}}",
+  "amount": 1000,
+  "currency": "TRY"
+}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/test-credits/{{creditId}}
+Authorization: Bearer {{opsAccessToken}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/fast
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "sourceAccountId": "{{sourceAccountId}}",
+  "destinationIban": "{{destinationIban}}",
+  "amount": 100,
+  "currency": "TRY",
+  "description": "FAST"
+}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/fast/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/fast/{{fastPaymentId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+@incomingFastPaymentId = {{incomingFastPaymentId}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/incoming-fast
+Authorization: Bearer {{opsAccessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "destinationIban": "{{destinationIban}}",
+  "sourceIban": "{{sourceIban}}",
+  "amount": 100,
+  "currency": "TRY",
+  "description": "Gelen FAST"
+}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/incoming-fast/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/incoming-fast/{{incomingFastPaymentId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+@eftPaymentId = {{eftPaymentId}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/eft
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "sourceAccountId": "{{sourceAccountId}}",
+  "destinationIban": "{{destinationIban}}",
+  "amount": 100,
+  "currency": "TRY",
+  "description": "EFT"
+}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/eft/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/eft/{{eftPaymentId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/eft/{{eftPaymentId}}/settle
+Authorization: Bearer {{opsAccessToken}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/eft/{{eftPaymentId}}/reject
+Authorization: Bearer {{opsAccessToken}}
+Content-Type: application/json
+
+{
+  "reason": "IBAN eşleşmedi"
+}

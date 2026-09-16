@@ -24,6 +24,10 @@ public static class DependencyInjection
         services.Configure<TransferLimitOptions>(configuration.GetSection(TransferLimitOptions.SectionName));
         services.AddScoped<IAccountProjectionRepository, AccountProjectionRepository>();
         services.AddScoped<ITransferRepository, TransferRepository>();
+        services.AddScoped<IFastPaymentRepository, FastPaymentRepository>();
+        services.AddScoped<IEftPaymentRepository, EftPaymentRepository>();
+        services.AddScoped<ITestCreditRepository, TestCreditRepository>();
+        services.AddScoped<IIncomingFastPaymentRepository, IncomingFastPaymentRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IIntegrationEventPublisher, MassTransitIntegrationEventPublisher>();
         services.AddPaymentMessageBus(configuration);
@@ -52,6 +56,10 @@ public static class DependencyInjection
         {
             options.AddPolicy(AuthorizationPolicies.CustomersRead, policy =>
                 policy.RequireClaim("permission", Permissions.CustomersRead));
+            options.AddPolicy(AuthorizationPolicies.PaymentsCredit, policy =>
+                policy.RequireClaim("permission", Permissions.PaymentsCredit));
+            options.AddPolicy(AuthorizationPolicies.PaymentsSettle, policy =>
+                policy.RequireClaim("permission", Permissions.PaymentsSettle));
         });
 
         return services;

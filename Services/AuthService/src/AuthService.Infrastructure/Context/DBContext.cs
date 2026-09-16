@@ -168,6 +168,20 @@ namespace AuthService.Infrastructure.Context
                         Code = IdentitySeed.RolesAssignPermissionCode,
                         Description = "Rol atama",
                         CreatedAt = IdentitySeed.SeededAt
+                    },
+                    new Permission
+                    {
+                        Id = IdentitySeed.PaymentsCreditPermissionId,
+                        Code = IdentitySeed.PaymentsCreditPermissionCode,
+                        Description = "Test kredisi (clearing debit, müşteri credit)",
+                        CreatedAt = IdentitySeed.SeededAt
+                    },
+                    new Permission
+                    {
+                        Id = IdentitySeed.PaymentsSettlePermissionId,
+                        Code = IdentitySeed.PaymentsSettlePermissionCode,
+                        Description = "EFT takas / iade (sahte clearing)",
+                        CreatedAt = IdentitySeed.SeededAt
                     });
             });
 
@@ -228,6 +242,16 @@ namespace AuthService.Infrastructure.Context
                 {
                     RoleId = IdentitySeed.OperationsRoleId,
                     PermissionId = IdentitySeed.RolesAssignPermissionId
+                },
+                new RolePermission
+                {
+                    RoleId = IdentitySeed.OperationsRoleId,
+                    PermissionId = IdentitySeed.PaymentsCreditPermissionId
+                },
+                new RolePermission
+                {
+                    RoleId = IdentitySeed.OperationsRoleId,
+                    PermissionId = IdentitySeed.PaymentsSettlePermissionId
                 });
 
             #endregion

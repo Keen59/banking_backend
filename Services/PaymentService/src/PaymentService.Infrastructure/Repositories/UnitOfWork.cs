@@ -8,13 +8,25 @@ namespace PaymentService.Infrastructure.Repositories;
 public class UnitOfWork(
     DBContext context,
     IAccountProjectionRepository accountProjections,
-    ITransferRepository transfers) : IUnitOfWork
+    ITransferRepository transfers,
+    IFastPaymentRepository fastPayments,
+    IEftPaymentRepository eftPayments,
+    ITestCreditRepository testCredits,
+    IIncomingFastPaymentRepository incomingFastPayments) : IUnitOfWork
 {
     private IDbContextTransaction? _currentTransaction;
 
     public IAccountProjectionRepository AccountProjections => accountProjections;
 
     public ITransferRepository Transfers => transfers;
+
+    public IFastPaymentRepository FastPayments => fastPayments;
+
+    public IEftPaymentRepository EftPayments => eftPayments;
+
+    public ITestCreditRepository TestCredits => testCredits;
+
+    public IIncomingFastPaymentRepository IncomingFastPayments => incomingFastPayments;
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 

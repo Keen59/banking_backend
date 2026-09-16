@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.8" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -22,6 +23,7 @@
     <ProjectReference Include="..\..\src\PaymentService.Application\PaymentService.Application.csproj" />
     <ProjectReference Include="..\..\src\PaymentService.Domain\PaymentService.Domain.csproj" />
     <ProjectReference Include="..\..\src\PaymentService.Infrastructure\PaymentService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\PaymentService.Presentation\PaymentService.Presentation.csproj" />
     <ProjectReference Include="..\..\..\..\BuildingBlocks\src\Banking.Contracts\Banking.Contracts.csproj" />
   </ItemGroup>
 

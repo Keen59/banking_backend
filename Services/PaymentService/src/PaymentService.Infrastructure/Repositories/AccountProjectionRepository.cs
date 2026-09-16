@@ -12,4 +12,11 @@ public class AccountProjectionRepository(DBContext context)
     {
         return await Context.AccountProjection.AnyAsync(x => x.Id == accountId, cancellationToken);
     }
+
+    public async Task<AccountProjection?> GetByIbanAsync(
+        string iban,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.AccountProjection.FirstOrDefaultAsync(x => x.Iban == iban, cancellationToken);
+    }
 }

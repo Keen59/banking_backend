@@ -9,6 +9,14 @@ public interface IUnitOfWork : IAsyncDisposable
 
     ITransferRepository Transfers { get; }
 
+    IFastPaymentRepository FastPayments { get; }
+
+    IEftPaymentRepository EftPayments { get; }
+
+    ITestCreditRepository TestCredits { get; }
+
+    IIncomingFastPaymentRepository IncomingFastPayments { get; }
+
     IRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity, new();
 
     Task<int> SaveAsync(CancellationToken cancellationToken);

@@ -303,6 +303,20 @@ namespace AuthService.Infrastructure.Migrations
                             Code = "roles:assign",
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Rol atama"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1a1a1a1-0002-4000-8000-000000000004"),
+                            Code = "payments:credit",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Test kredisi (clearing debit, müşteri credit)"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1a1a1a1-0002-4000-8000-000000000005"),
+                            Code = "payments:settle",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "EFT takas / iade (sahte clearing)"
                         });
                 });
 
@@ -439,6 +453,16 @@ namespace AuthService.Infrastructure.Migrations
                         {
                             RoleId = new Guid("a1a1a1a1-0001-4000-8000-000000000002"),
                             PermissionId = new Guid("a1a1a1a1-0002-4000-8000-000000000003")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("a1a1a1a1-0001-4000-8000-000000000002"),
+                            PermissionId = new Guid("a1a1a1a1-0002-4000-8000-000000000004")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("a1a1a1a1-0001-4000-8000-000000000002"),
+                            PermissionId = new Guid("a1a1a1a1-0002-4000-8000-000000000005")
                         });
                 });
 

@@ -11,5 +11,6 @@ public enum ETransferStatus
 {
     Initiated = 1,
     Completed = 2,
-    Rejected = 3
+    Rejected = 3,
+    Held = 4
 }

@@ -15,6 +15,12 @@ public static class MassTransitRegistration
             bus.SetKebabCaseEndpointNameFormatter();
             bus.AddConsumer<AccountOpenedConsumer>();
             bus.AddConsumer<TransferRequestedConsumer>();
+            bus.AddConsumer<TestCreditRequestedConsumer>();
+            bus.AddConsumer<FastPaymentRequestedConsumer>();
+            bus.AddConsumer<IncomingFastPaymentRequestedConsumer>();
+            bus.AddConsumer<EftPaymentRequestedConsumer>();
+            bus.AddConsumer<EftSettlementRequestedConsumer>();
+            bus.AddConsumer<EftReturnRequestedConsumer>();
 
             bus.AddEntityFrameworkOutbox<DBContext>(outbox =>
             {
