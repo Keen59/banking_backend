@@ -1,6 +1,8 @@
 using Banking.Contracts.Events;
 using MediatR;
+using PaymentService.Application.Helpers;
 using PaymentService.Application.Interfaces.Repositories;
+using PaymentService.Application.Interfaces.Services;
 using PaymentService.Domain.Enums;
 
 namespace PaymentService.Application.Commands.RejectTransfer;
@@ -10,7 +12,7 @@ public class RejectTransferCommand : IRequest
     public required TransferRejected Event { get; init; }
 }
 
-public class RejectTransferHandler(IUnitOfWork unitOfWork)
+public class RejectTransferHandler(IUnitOfWork unitOfWork, IIntegrationEventPublisher publisher)
     : IRequestHandler<RejectTransferCommand>
 {
     public async Task Handle(RejectTransferCommand request, CancellationToken cancellationToken)
@@ -30,6 +32,9 @@ public class RejectTransferHandler(IUnitOfWork unitOfWork)
         transfer.RejectReason = evt.Reason;
         transfer.UpdatedAt = evt.OccurredAt;
         unitOfWork.Transfers.Update(transfer);
+        await publisher.PublishAsync(
+            CustomerNotifications.TransferRejected(transfer.CustomerId, transfer.Id, evt.Reason, evt.OccurredAt),
+            cancellationToken);
         await unitOfWork.SaveAsync(cancellationToken);
     }
 }

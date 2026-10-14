@@ -5,6 +5,16 @@
 
 ###
 
+POST {{AccountService.Presentation_HostAddress}}/api/accounts
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currency": "USD"
+}
+
+###
+
 GET {{AccountService.Presentation_HostAddress}}/api/accounts/me
 Authorization: Bearer {{accessToken}}
 

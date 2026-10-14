@@ -19,7 +19,7 @@ public class EftPaymentResultHandlerTests
         var store = new InMemoryPaymentUnitOfWork();
         store.EftPaymentRows.Add(payment);
 
-        await new MarkEftPaymentHeldHandler(store).Handle(new MarkEftPaymentHeldCommand
+        await new MarkEftPaymentHeldHandler(store, new RecordingPublisher()).Handle(new MarkEftPaymentHeldCommand
         {
             Event = new EftPaymentHeld(payment.Id, DateTimeOffset.UtcNow)
         }, CancellationToken.None);
@@ -36,7 +36,7 @@ public class EftPaymentResultHandlerTests
         var store = new InMemoryPaymentUnitOfWork();
         store.EftPaymentRows.Add(payment);
 
-        await new MarkEftPaymentHeldHandler(store).Handle(new MarkEftPaymentHeldCommand
+        await new MarkEftPaymentHeldHandler(store, new RecordingPublisher()).Handle(new MarkEftPaymentHeldCommand
         {
             Event = new EftPaymentHeld(payment.Id, DateTimeOffset.UtcNow)
         }, CancellationToken.None);
@@ -53,7 +53,7 @@ public class EftPaymentResultHandlerTests
         store.EftPaymentRows.Add(payment);
         var journalId = Guid.NewGuid();
 
-        await new CompleteEftPaymentHandler(store).Handle(new CompleteEftPaymentCommand
+        await new CompleteEftPaymentHandler(store, new RecordingPublisher()).Handle(new CompleteEftPaymentCommand
         {
             Event = new EftPaymentCompleted(payment.Id, journalId, DateTimeOffset.UtcNow)
         }, CancellationToken.None);
@@ -71,7 +71,7 @@ public class EftPaymentResultHandlerTests
         var store = new InMemoryPaymentUnitOfWork();
         store.EftPaymentRows.Add(payment);
 
-        await new RejectEftPaymentHandler(store).Handle(new RejectEftPaymentCommand
+        await new RejectEftPaymentHandler(store, new RecordingPublisher()).Handle(new RejectEftPaymentCommand
         {
             Event = new EftPaymentRejected(payment.Id, "EFT iade.", DateTimeOffset.UtcNow)
         }, CancellationToken.None);
@@ -89,7 +89,7 @@ public class EftPaymentResultHandlerTests
         var store = new InMemoryPaymentUnitOfWork();
         store.EftPaymentRows.Add(payment);
 
-        await new RejectEftPaymentHandler(store).Handle(new RejectEftPaymentCommand
+        await new RejectEftPaymentHandler(store, new RecordingPublisher()).Handle(new RejectEftPaymentCommand
         {
             Event = new EftPaymentRejected(payment.Id, "late reject", DateTimeOffset.UtcNow)
         }, CancellationToken.None);

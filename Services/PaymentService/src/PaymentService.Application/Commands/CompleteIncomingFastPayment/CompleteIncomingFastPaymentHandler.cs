@@ -1,6 +1,8 @@
 using Banking.Contracts.Events;
 using MediatR;
+using PaymentService.Application.Helpers;
 using PaymentService.Application.Interfaces.Repositories;
+using PaymentService.Application.Interfaces.Services;
 using PaymentService.Domain.Enums;
 
 namespace PaymentService.Application.Commands.CompleteIncomingFastPayment;
@@ -10,7 +12,7 @@ public class CompleteIncomingFastPaymentCommand : IRequest
     public required IncomingFastPaymentCompleted Event { get; init; }
 }
 
-public class CompleteIncomingFastPaymentHandler(IUnitOfWork unitOfWork)
+public class CompleteIncomingFastPaymentHandler(IUnitOfWork unitOfWork, IIntegrationEventPublisher publisher)
     : IRequestHandler<CompleteIncomingFastPaymentCommand>
 {
     public async Task Handle(CompleteIncomingFastPaymentCommand request, CancellationToken cancellationToken)
@@ -27,6 +29,13 @@ public class CompleteIncomingFastPaymentHandler(IUnitOfWork unitOfWork)
         payment.RejectReason = null;
         payment.UpdatedAt = request.Event.OccurredAt;
         unitOfWork.IncomingFastPayments.Update(payment);
+        await publisher.PublishAsync(
+            CustomerNotifications.IncomingFastCompleted(
+                payment.AccountCustomerId,
+                payment.Id,
+                payment.Amount,
+                request.Event.OccurredAt),
+            cancellationToken);
         await unitOfWork.SaveAsync(cancellationToken);
     }
 }

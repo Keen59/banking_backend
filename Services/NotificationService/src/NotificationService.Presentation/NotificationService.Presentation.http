@@ -1,0 +1,13 @@
+@NotificationService.Presentation_HostAddress = http://localhost:5069
+@accessToken = {{accessToken}}
+@notificationId = {{notificationId}}
+
+###
+
+GET {{NotificationService.Presentation_HostAddress}}/api/notifications/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{NotificationService.Presentation_HostAddress}}/api/notifications/{{notificationId}}/read
+Authorization: Bearer {{accessToken}}

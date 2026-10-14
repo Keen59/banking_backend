@@ -1,0 +1,50 @@
+@LoanService.Presentation_HostAddress = http://localhost:5099
+@accessToken = {{accessToken}}
+@opsAccessToken = {{opsAccessToken}}
+@accountId = {{accountId}}
+@loanId = {{loanId}}
+@idempotencyKey = {{idempotencyKey}}
+
+###
+
+POST {{LoanService.Presentation_HostAddress}}/api/loans
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "accountId": "{{accountId}}",
+  "amount": 1000,
+  "termMonths": 3,
+  "currency": "TRY"
+}
+
+###
+
+GET {{LoanService.Presentation_HostAddress}}/api/loans/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{LoanService.Presentation_HostAddress}}/api/loans/{{loanId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{LoanService.Presentation_HostAddress}}/api/loans/{{loanId}}/approve
+Authorization: Bearer {{opsAccessToken}}
+
+###
+
+POST {{LoanService.Presentation_HostAddress}}/api/loans/{{loanId}}/reject
+Authorization: Bearer {{opsAccessToken}}
+Content-Type: application/json
+
+{
+  "reason": "Risk değerlendirmesi uygun değil."
+}
+
+###
+
+POST {{LoanService.Presentation_HostAddress}}/api/loans/{{loanId}}/repay
+Authorization: Bearer {{accessToken}}

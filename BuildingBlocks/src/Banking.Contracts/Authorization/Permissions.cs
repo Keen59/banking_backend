@@ -13,6 +13,8 @@ public static class Permissions
     public const string RolesAssign = "roles:assign";
     public const string PaymentsCredit = "payments:credit";
     public const string PaymentsSettle = "payments:settle";
+    public const string RiskReview = "risk:review";
+    public const string LoansReview = "loans:review";
 }
 
 public static class AuthorizationPolicies
@@ -21,4 +23,6 @@ public static class AuthorizationPolicies
     public const string CustomersRead = "CustomersRead";
     public const string PaymentsCredit = "PaymentsCredit";
     public const string PaymentsSettle = "PaymentsSettle";
+    public const string RiskReview = "RiskReview";
+    public const string LoansReview = "LoansReview";
 }

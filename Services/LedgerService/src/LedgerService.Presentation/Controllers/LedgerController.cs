@@ -1,6 +1,7 @@
 using Banking.Contracts.Authorization;
 using LedgerService.Application.Commands.GetAccountBalance;
 using LedgerService.Application.Commands.GetAccountMovements;
+using LedgerService.Application.Commands.GetAccountStatement;
 using LedgerService.Application.Commands.GetMyBalances;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -59,6 +60,28 @@ public class LedgerController(IMediator mediator) : ControllerBase
             AccountId = accountId,
             RequestedCustomerId = customerId,
             CanReadAny = HasPermission(Permissions.CustomersRead)
+        }, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("accounts/{accountId:guid}/statement")]
+    public async Task<ActionResult<GetAccountStatementResponse>> GetStatement(
+        Guid accountId,
+        [FromQuery] DateTimeOffset from,
+        [FromQuery] DateTimeOffset to,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetCustomerId(out var customerId))
+            return Unauthorized();
+
+        var response = await mediator.Send(new GetAccountStatementCommand
+        {
+            AccountId = accountId,
+            RequestedCustomerId = customerId,
+            CanReadAny = HasPermission(Permissions.CustomersRead),
+            From = from,
+            To = to
         }, cancellationToken);
 
         return Ok(response);

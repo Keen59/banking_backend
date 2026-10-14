@@ -182,6 +182,20 @@ namespace AuthService.Infrastructure.Context
                         Code = IdentitySeed.PaymentsSettlePermissionCode,
                         Description = "EFT takas / iade (sahte clearing)",
                         CreatedAt = IdentitySeed.SeededAt
+                    },
+                    new Permission
+                    {
+                        Id = IdentitySeed.RiskReviewPermissionId,
+                        Code = IdentitySeed.RiskReviewPermissionCode,
+                        Description = "İşlem izleme uyarısı inceleme / kapatma",
+                        CreatedAt = IdentitySeed.SeededAt
+                    },
+                    new Permission
+                    {
+                        Id = IdentitySeed.LoansReviewPermissionId,
+                        Code = IdentitySeed.LoansReviewPermissionCode,
+                        Description = "Kredi başvurusu onay / red",
+                        CreatedAt = IdentitySeed.SeededAt
                     });
             });
 
@@ -252,6 +266,16 @@ namespace AuthService.Infrastructure.Context
                 {
                     RoleId = IdentitySeed.OperationsRoleId,
                     PermissionId = IdentitySeed.PaymentsSettlePermissionId
+                },
+                new RolePermission
+                {
+                    RoleId = IdentitySeed.OperationsRoleId,
+                    PermissionId = IdentitySeed.RiskReviewPermissionId
+                },
+                new RolePermission
+                {
+                    RoleId = IdentitySeed.OperationsRoleId,
+                    PermissionId = IdentitySeed.LoansReviewPermissionId
                 });
 
             #endregion

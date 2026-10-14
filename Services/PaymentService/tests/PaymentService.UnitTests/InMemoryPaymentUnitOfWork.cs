@@ -13,6 +13,8 @@ internal sealed class InMemoryPaymentUnitOfWork : IUnitOfWork
     public List<EftPayment> EftPaymentRows { get; } = [];
     public List<TestCredit> TestCreditRows { get; } = [];
     public List<IncomingFastPayment> IncomingFastPaymentRows { get; } = [];
+    public List<IncomingEftPayment> IncomingEftPaymentRows { get; } = [];
+    public List<FxConversion> FxConversionRows { get; } = [];
 
     public IAccountProjectionRepository AccountProjections { get; }
     public ITransferRepository Transfers { get; }
@@ -20,6 +22,8 @@ internal sealed class InMemoryPaymentUnitOfWork : IUnitOfWork
     public IEftPaymentRepository EftPayments { get; }
     public ITestCreditRepository TestCredits { get; }
     public IIncomingFastPaymentRepository IncomingFastPayments { get; }
+    public IIncomingEftPaymentRepository IncomingEftPayments { get; }
+    public IFxConversionRepository FxConversions { get; }
 
     public InMemoryPaymentUnitOfWork()
     {
@@ -29,6 +33,8 @@ internal sealed class InMemoryPaymentUnitOfWork : IUnitOfWork
         EftPayments = new MemoryEftPayments(this);
         TestCredits = new MemoryTestCredits(this);
         IncomingFastPayments = new MemoryIncomingFastPayments(this);
+        IncomingEftPayments = new MemoryIncomingEftPayments(this);
+        FxConversions = new MemoryFxConversions(this);
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -247,5 +253,77 @@ internal sealed class InMemoryPaymentUnitOfWork : IUnitOfWork
             CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<IncomingFastPayment>>(
                 store.IncomingFastPaymentRows.Where(x => x.AccountCustomerId == customerId).ToList());
+    }
+
+    private sealed class MemoryIncomingEftPayments(InMemoryPaymentUnitOfWork store) : IIncomingEftPaymentRepository
+    {
+        public IQueryable<IncomingEftPayment> Query() => store.IncomingEftPaymentRows.AsQueryable();
+
+        public Task<IncomingEftPayment?> GetByIdAsync(Guid id)
+            => Task.FromResult(store.IncomingEftPaymentRows.FirstOrDefault(x => x.Id == id));
+
+        public Task AddAsync(IncomingEftPayment entity, CancellationToken cancellationToken)
+        {
+            store.IncomingEftPaymentRows.Add(entity);
+            return Task.CompletedTask;
+        }
+
+        public void Update(IncomingEftPayment entity) { }
+
+        public void Remove(IncomingEftPayment entity) => store.IncomingEftPaymentRows.Remove(entity);
+
+        public Task<IncomingEftPayment?> GetByIdempotencyKeyAsync(
+            string idempotencyKey,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(store.IncomingEftPaymentRows.FirstOrDefault(x => x.IdempotencyKey == idempotencyKey));
+
+        public Task<IReadOnlyList<IncomingEftPayment>> GetByCustomerIdAsync(
+            Guid customerId,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<IncomingEftPayment>>(
+                store.IncomingEftPaymentRows.Where(x => x.AccountCustomerId == customerId).ToList());
+    }
+
+    private sealed class MemoryFxConversions(InMemoryPaymentUnitOfWork store) : IFxConversionRepository
+    {
+        public IQueryable<FxConversion> Query() => store.FxConversionRows.AsQueryable();
+
+        public Task<FxConversion?> GetByIdAsync(Guid id)
+            => Task.FromResult(store.FxConversionRows.FirstOrDefault(x => x.Id == id));
+
+        public Task AddAsync(FxConversion entity, CancellationToken cancellationToken)
+        {
+            store.FxConversionRows.Add(entity);
+            return Task.CompletedTask;
+        }
+
+        public void Update(FxConversion entity) { }
+
+        public void Remove(FxConversion entity) => store.FxConversionRows.Remove(entity);
+
+        public Task<FxConversion?> GetByIdempotencyKeyAsync(
+            Guid customerId,
+            string idempotencyKey,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(store.FxConversionRows.FirstOrDefault(
+                x => x.CustomerId == customerId && x.IdempotencyKey == idempotencyKey));
+
+        public Task<IReadOnlyList<FxConversion>> GetByCustomerIdAsync(
+            Guid customerId,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<FxConversion>>(
+                store.FxConversionRows.Where(x => x.CustomerId == customerId).ToList());
+
+        public Task<decimal> SumCountedTowardDailyLimitAsync(
+            Guid customerId,
+            DateTimeOffset fromUtc,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(
+                store.FxConversionRows
+                    .Where(x =>
+                        x.CustomerId == customerId &&
+                        x.CreatedAt >= fromUtc &&
+                        x.Status != ETransferStatus.Rejected)
+                    .Sum(x => x.TryEquivalent));
     }
 }

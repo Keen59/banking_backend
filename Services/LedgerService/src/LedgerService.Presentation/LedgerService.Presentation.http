@@ -20,5 +20,10 @@ Authorization: Bearer {{accessToken}}
 
 ###
 
+GET {{LedgerService.Presentation_HostAddress}}/api/ledger/accounts/{{accountId}}/statement?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z
+Authorization: Bearer {{accessToken}}
+
+###
+
 GET {{LedgerService.Presentation_HostAddress}}/api/ledger/accounts/{{accountId}}
 Authorization: Bearer {{opsAccessToken}}

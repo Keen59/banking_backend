@@ -1,0 +1,23 @@
+@RiskService.Presentation_HostAddress = http://localhost:5089
+@opsAccessToken = {{opsAccessToken}}
+@alertId = {{alertId}}
+
+###
+
+GET {{RiskService.Presentation_HostAddress}}/api/risk/alerts
+Authorization: Bearer {{opsAccessToken}}
+
+###
+
+GET {{RiskService.Presentation_HostAddress}}/api/risk/alerts/{{alertId}}
+Authorization: Bearer {{opsAccessToken}}
+
+###
+
+POST {{RiskService.Presentation_HostAddress}}/api/risk/alerts/{{alertId}}/close
+Authorization: Bearer {{opsAccessToken}}
+Content-Type: application/json
+
+{
+  "reason": "Reviewed and cleared"
+}

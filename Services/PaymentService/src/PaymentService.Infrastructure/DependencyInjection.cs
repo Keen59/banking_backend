@@ -22,12 +22,15 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         services.Configure<TransferLimitOptions>(configuration.GetSection(TransferLimitOptions.SectionName));
+        services.Configure<FxRateOptions>(configuration.GetSection(FxRateOptions.SectionName));
         services.AddScoped<IAccountProjectionRepository, AccountProjectionRepository>();
         services.AddScoped<ITransferRepository, TransferRepository>();
         services.AddScoped<IFastPaymentRepository, FastPaymentRepository>();
         services.AddScoped<IEftPaymentRepository, EftPaymentRepository>();
         services.AddScoped<ITestCreditRepository, TestCreditRepository>();
         services.AddScoped<IIncomingFastPaymentRepository, IncomingFastPaymentRepository>();
+        services.AddScoped<IIncomingEftPaymentRepository, IncomingEftPaymentRepository>();
+        services.AddScoped<IFxConversionRepository, FxConversionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IIntegrationEventPublisher, MassTransitIntegrationEventPublisher>();
         services.AddPaymentMessageBus(configuration);

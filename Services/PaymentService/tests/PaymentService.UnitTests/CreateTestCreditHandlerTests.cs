@@ -99,7 +99,7 @@ public class CreateTestCreditHandlerTests
         store.TestCreditRows.Add(credit);
         var journalId = Guid.NewGuid();
 
-        await new CompleteTestCreditHandler(store).Handle(new CompleteTestCreditCommand
+        await new CompleteTestCreditHandler(store, new RecordingPublisher()).Handle(new CompleteTestCreditCommand
         {
             Event = new TestCreditPosted(credit.Id, journalId, DateTimeOffset.UtcNow)
         }, CancellationToken.None);

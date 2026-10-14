@@ -8,6 +8,8 @@ public class CreateTransferCommand : IRequest<CreateTransferResponse>
 {
     public Guid CustomerId { get; set; }
 
+    public Guid? TransferId { get; set; }
+
     public Guid SourceAccountId { get; set; }
 
     public Guid DestinationAccountId { get; set; }

@@ -1,5 +1,6 @@
 using AccountService.Application.Commands.GetAccount;
 using AccountService.Application.Commands.GetMyAccounts;
+using AccountService.Application.Commands.OpenFxAccount;
 using Banking.Contracts.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -13,6 +14,23 @@ namespace AccountService.Presentation.Controllers;
 [Authorize]
 public class AccountsController(IMediator mediator) : ControllerBase
 {
+    [HttpPost]
+    public async Task<ActionResult<OpenFxAccountResponse>> OpenFx(
+        [FromBody] OpenFxAccountRequest body,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetCustomerId(out var customerId))
+            return Unauthorized();
+
+        var response = await mediator.Send(new OpenFxAccountCommand
+        {
+            CustomerId = customerId,
+            Currency = body.Currency
+        }, cancellationToken);
+
+        return Ok(response);
+    }
+
     [HttpGet("me")]
     public async Task<ActionResult<GetMyAccountsResponse>> Me(CancellationToken cancellationToken)
     {
@@ -54,4 +72,9 @@ public class AccountsController(IMediator mediator) : ControllerBase
     {
         return User.Claims.Any(claim => claim.Type == "permission" && claim.Value == permission);
     }
+}
+
+public class OpenFxAccountRequest
+{
+    public string Currency { get; set; } = string.Empty;
 }

@@ -46,7 +46,13 @@ public class ReviewKycHandler(
                 document.Status = EDocumentStatus.Verified;
 
             await eventPublisher.PublishAsync(
-                new KycApproved(customer.Id, customer.CifNumber, DateTimeOffset.UtcNow),
+                new KycApproved(
+                    customer.Id,
+                    customer.CifNumber,
+                    DateTimeOffset.UtcNow,
+                    customer.FirstName,
+                    customer.LastName,
+                    customer.NationalId),
                 cancellationToken);
         }
         else

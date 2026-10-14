@@ -1,6 +1,8 @@
 using Banking.Contracts.Events;
 using MediatR;
+using PaymentService.Application.Helpers;
 using PaymentService.Application.Interfaces.Repositories;
+using PaymentService.Application.Interfaces.Services;
 using PaymentService.Domain.Enums;
 
 namespace PaymentService.Application.Commands.CompleteTestCredit;
@@ -10,7 +12,7 @@ public class CompleteTestCreditCommand : IRequest
     public required TestCreditPosted Event { get; init; }
 }
 
-public class CompleteTestCreditHandler(IUnitOfWork unitOfWork)
+public class CompleteTestCreditHandler(IUnitOfWork unitOfWork, IIntegrationEventPublisher publisher)
     : IRequestHandler<CompleteTestCreditCommand>
 {
     public async Task Handle(CompleteTestCreditCommand request, CancellationToken cancellationToken)
@@ -28,6 +30,9 @@ public class CompleteTestCreditHandler(IUnitOfWork unitOfWork)
         credit.RejectReason = null;
         credit.UpdatedAt = evt.OccurredAt;
         unitOfWork.TestCredits.Update(credit);
+        await publisher.PublishAsync(
+            CustomerNotifications.TestCreditPosted(credit.AccountCustomerId, credit.Id, credit.Amount, evt.OccurredAt),
+            cancellationToken);
         await unitOfWork.SaveAsync(cancellationToken);
     }
 }

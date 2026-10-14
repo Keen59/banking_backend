@@ -25,6 +25,10 @@ public static class PaymentDailyLimit
             customerId,
             from,
             cancellationToken);
-        return transfers + fast + eft;
+        var fx = await unitOfWork.FxConversions.SumCountedTowardDailyLimitAsync(
+            customerId,
+            from,
+            cancellationToken);
+        return transfers + fast + eft + fx;
     }
 }

@@ -173,6 +173,22 @@ namespace LedgerService.Infrastructure.Migrations
                             Currency = "TRY",
                             Kind = 2,
                             Status = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("b1b1b1b1-0001-4000-8000-000000000002"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
+                            Kind = 2,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("b1b1b1b1-0001-4000-8000-000000000003"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "EUR",
+                            Kind = 2,
+                            Status = 1
                         });
                 });
 

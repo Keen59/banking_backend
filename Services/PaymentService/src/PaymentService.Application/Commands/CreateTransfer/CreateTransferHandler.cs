@@ -73,7 +73,7 @@ public class CreateTransferHandler(
         var now = DateTimeOffset.UtcNow;
         var transfer = new Transfer
         {
-            Id = Guid.NewGuid(),
+            Id = request.TransferId ?? Guid.NewGuid(),
             CustomerId = request.CustomerId,
             SourceAccountId = request.SourceAccountId,
             DestinationAccountId = request.DestinationAccountId,

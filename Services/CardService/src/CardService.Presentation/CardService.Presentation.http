@@ -1,0 +1,54 @@
+@CardService.Presentation_HostAddress = http://localhost:5079
+@accessToken = {{accessToken}}
+@cardId = {{cardId}}
+@authorizationId = {{authorizationId}}
+@idempotencyKey = {{idempotencyKey}}
+
+###
+
+GET {{CardService.Presentation_HostAddress}}/api/cards/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{CardService.Presentation_HostAddress}}/api/cards/{{cardId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{CardService.Presentation_HostAddress}}/api/cards/{{cardId}}/freeze
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{CardService.Presentation_HostAddress}}/api/cards/{{cardId}}/authorize
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "amount": 100,
+  "currency": "TRY",
+  "merchant": "Market",
+  "description": "Kart yetkisi"
+}
+
+###
+
+GET {{CardService.Presentation_HostAddress}}/api/cards/{{cardId}}/authorizations
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{CardService.Presentation_HostAddress}}/api/cards/{{cardId}}/authorizations/{{authorizationId}}/capture
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{CardService.Presentation_HostAddress}}/api/cards/{{cardId}}/authorizations/{{authorizationId}}/reverse
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "reason": "Iptal"
+}

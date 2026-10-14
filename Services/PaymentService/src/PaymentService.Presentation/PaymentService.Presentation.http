@@ -113,6 +113,50 @@ Authorization: Bearer {{accessToken}}
 
 ###
 
+@incomingEftPaymentId = {{incomingEftPaymentId}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/incoming-eft
+Authorization: Bearer {{opsAccessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "destinationIban": "{{destinationIban}}",
+  "sourceIban": "{{sourceIban}}",
+  "amount": 100,
+  "currency": "TRY",
+  "description": "Gelen EFT"
+}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/incoming-eft/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/incoming-eft/{{incomingEftPaymentId}}
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/incoming-eft/{{incomingEftPaymentId}}/settle
+Authorization: Bearer {{opsAccessToken}}
+
+###
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/incoming-eft/{{incomingEftPaymentId}}/reject
+Authorization: Bearer {{opsAccessToken}}
+Content-Type: application/json
+
+{
+  "reason": "IBAN eşleşmedi"
+}
+
+###
+
 @eftPaymentId = {{eftPaymentId}}
 
 ###
@@ -154,3 +198,30 @@ Content-Type: application/json
 {
   "reason": "IBAN eşleşmedi"
 }
+
+###
+
+@fxConversionId = {{fxConversionId}}
+@usdAccountId = {{usdAccountId}}
+
+POST {{PaymentService.Presentation_HostAddress}}/api/payments/fx-conversions
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "sourceAccountId": "{{sourceAccountId}}",
+  "destinationAccountId": "{{usdAccountId}}",
+  "sourceAmount": 3400,
+  "description": "USD al"
+}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/fx-conversions/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{PaymentService.Presentation_HostAddress}}/api/payments/fx-conversions/{{fxConversionId}}
+Authorization: Bearer {{accessToken}}

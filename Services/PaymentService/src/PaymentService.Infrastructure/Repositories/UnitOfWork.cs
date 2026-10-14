@@ -12,7 +12,9 @@ public class UnitOfWork(
     IFastPaymentRepository fastPayments,
     IEftPaymentRepository eftPayments,
     ITestCreditRepository testCredits,
-    IIncomingFastPaymentRepository incomingFastPayments) : IUnitOfWork
+    IIncomingFastPaymentRepository incomingFastPayments,
+    IIncomingEftPaymentRepository incomingEftPayments,
+    IFxConversionRepository fxConversions) : IUnitOfWork
 {
     private IDbContextTransaction? _currentTransaction;
 
@@ -27,6 +29,10 @@ public class UnitOfWork(
     public ITestCreditRepository TestCredits => testCredits;
 
     public IIncomingFastPaymentRepository IncomingFastPayments => incomingFastPayments;
+
+    public IIncomingEftPaymentRepository IncomingEftPayments => incomingEftPayments;
+
+    public IFxConversionRepository FxConversions => fxConversions;
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 

@@ -17,7 +17,7 @@ public class TransferResultHandlerTests
         store.TransferRows.Add(transfer);
         var journalId = Guid.NewGuid();
 
-        await new CompleteTransferHandler(store).Handle(new CompleteTransferCommand
+        await new CompleteTransferHandler(store, new RecordingPublisher()).Handle(new CompleteTransferCommand
         {
             Event = new TransferCompleted(transfer.Id, journalId, DateTimeOffset.UtcNow)
         }, CancellationToken.None);
@@ -37,7 +37,7 @@ public class TransferResultHandlerTests
         store.TransferRows.Add(transfer);
         var originalJournal = transfer.JournalEntryId;
 
-        await new CompleteTransferHandler(store).Handle(new CompleteTransferCommand
+        await new CompleteTransferHandler(store, new RecordingPublisher()).Handle(new CompleteTransferCommand
         {
             Event = new TransferCompleted(transfer.Id, Guid.NewGuid(), DateTimeOffset.UtcNow)
         }, CancellationToken.None);
@@ -53,7 +53,7 @@ public class TransferResultHandlerTests
         var store = new InMemoryPaymentUnitOfWork();
         store.TransferRows.Add(transfer);
 
-        await new RejectTransferHandler(store).Handle(new RejectTransferCommand
+        await new RejectTransferHandler(store, new RecordingPublisher()).Handle(new RejectTransferCommand
         {
             Event = new TransferRejected(transfer.Id, "Available yetersiz.", DateTimeOffset.UtcNow)
         }, CancellationToken.None);
@@ -71,7 +71,7 @@ public class TransferResultHandlerTests
         var store = new InMemoryPaymentUnitOfWork();
         store.TransferRows.Add(transfer);
 
-        await new RejectTransferHandler(store).Handle(new RejectTransferCommand
+        await new RejectTransferHandler(store, new RecordingPublisher()).Handle(new RejectTransferCommand
         {
             Event = new TransferRejected(transfer.Id, "late reject", DateTimeOffset.UtcNow)
         }, CancellationToken.None);

@@ -1,0 +1,45 @@
+# Clients should call the gateway at localhost:5000 instead of per-service ports.
+@Gateway_HostAddress = http://localhost:5000
+
+GET {{Gateway_HostAddress}}/api/auth/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{Gateway_HostAddress}}/api/customers
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{Gateway_HostAddress}}/api/accounts
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{Gateway_HostAddress}}/api/ledger
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{Gateway_HostAddress}}/api/payments
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{Gateway_HostAddress}}/api/notifications
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{Gateway_HostAddress}}/api/cards
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{Gateway_HostAddress}}/api/risk
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{Gateway_HostAddress}}/api/loans
+Authorization: Bearer {{accessToken}}

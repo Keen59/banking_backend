@@ -1,6 +1,8 @@
 using Banking.Contracts.Events;
 using MediatR;
+using PaymentService.Application.Helpers;
 using PaymentService.Application.Interfaces.Repositories;
+using PaymentService.Application.Interfaces.Services;
 using PaymentService.Domain.Enums;
 
 namespace PaymentService.Application.Commands.CompleteEftPayment;
@@ -10,7 +12,7 @@ public class CompleteEftPaymentCommand : IRequest
     public required EftPaymentCompleted Event { get; init; }
 }
 
-public class CompleteEftPaymentHandler(IUnitOfWork unitOfWork)
+public class CompleteEftPaymentHandler(IUnitOfWork unitOfWork, IIntegrationEventPublisher publisher)
     : IRequestHandler<CompleteEftPaymentCommand>
 {
     public async Task Handle(CompleteEftPaymentCommand request, CancellationToken cancellationToken)
@@ -27,6 +29,9 @@ public class CompleteEftPaymentHandler(IUnitOfWork unitOfWork)
         payment.RejectReason = null;
         payment.UpdatedAt = request.Event.OccurredAt;
         unitOfWork.EftPayments.Update(payment);
+        await publisher.PublishAsync(
+            CustomerNotifications.EftCompleted(payment.CustomerId, payment.Id, payment.Amount, request.Event.OccurredAt),
+            cancellationToken);
         await unitOfWork.SaveAsync(cancellationToken);
     }
 }

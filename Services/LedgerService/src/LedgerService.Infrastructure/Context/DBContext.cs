@@ -33,16 +33,37 @@ public class DBContext : DbContext
                 .HasFilter("\"SourceAccountId\" IS NOT NULL");
             builder.HasIndex(x => x.CustomerId);
 
-            builder.HasData(new LedgerAccount
-            {
-                Id = SystemLedgerAccounts.InternalClearingTry,
-                SourceAccountId = null,
-                CustomerId = null,
-                Currency = "TRY",
-                Kind = ELedgerAccountKind.InternalClearing,
-                Status = ELedgerAccountStatus.Active,
-                CreatedAt = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero)
-            });
+            builder.HasData(
+                new LedgerAccount
+                {
+                    Id = SystemLedgerAccounts.InternalClearingTry,
+                    SourceAccountId = null,
+                    CustomerId = null,
+                    Currency = "TRY",
+                    Kind = ELedgerAccountKind.InternalClearing,
+                    Status = ELedgerAccountStatus.Active,
+                    CreatedAt = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero)
+                },
+                new LedgerAccount
+                {
+                    Id = SystemLedgerAccounts.InternalClearingUsd,
+                    SourceAccountId = null,
+                    CustomerId = null,
+                    Currency = "USD",
+                    Kind = ELedgerAccountKind.InternalClearing,
+                    Status = ELedgerAccountStatus.Active,
+                    CreatedAt = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero)
+                },
+                new LedgerAccount
+                {
+                    Id = SystemLedgerAccounts.InternalClearingEur,
+                    SourceAccountId = null,
+                    CustomerId = null,
+                    Currency = "EUR",
+                    Kind = ELedgerAccountKind.InternalClearing,
+                    Status = ELedgerAccountStatus.Active,
+                    CreatedAt = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero)
+                });
         });
 
         modelBuilder.Entity<JournalEntry>(builder =>

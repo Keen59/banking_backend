@@ -169,7 +169,7 @@ public class CreateIncomingFastPaymentHandlerTests
         store.IncomingFastPaymentRows.Add(payment);
         var journalId = Guid.NewGuid();
 
-        await new CompleteIncomingFastPaymentHandler(store).Handle(new CompleteIncomingFastPaymentCommand
+        await new CompleteIncomingFastPaymentHandler(store, new RecordingPublisher()).Handle(new CompleteIncomingFastPaymentCommand
         {
             Event = new IncomingFastPaymentCompleted(payment.Id, journalId, DateTimeOffset.UtcNow)
         }, CancellationToken.None);

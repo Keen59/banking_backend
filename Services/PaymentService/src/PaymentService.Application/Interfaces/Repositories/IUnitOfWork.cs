@@ -17,6 +17,10 @@ public interface IUnitOfWork : IAsyncDisposable
 
     IIncomingFastPaymentRepository IncomingFastPayments { get; }
 
+    IIncomingEftPaymentRepository IncomingEftPayments { get; }
+
+    IFxConversionRepository FxConversions { get; }
+
     IRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity, new();
 
     Task<int> SaveAsync(CancellationToken cancellationToken);

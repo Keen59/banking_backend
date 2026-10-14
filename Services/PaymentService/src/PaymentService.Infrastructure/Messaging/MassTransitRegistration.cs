@@ -25,6 +25,12 @@ public static class MassTransitRegistration
             bus.AddConsumer<EftPaymentHeldConsumer>();
             bus.AddConsumer<EftPaymentCompletedConsumer>();
             bus.AddConsumer<EftPaymentRejectedConsumer>();
+            bus.AddConsumer<IncomingEftPaymentHeldConsumer>();
+            bus.AddConsumer<IncomingEftPaymentCompletedConsumer>();
+            bus.AddConsumer<IncomingEftPaymentRejectedConsumer>();
+            bus.AddConsumer<FxConversionCompletedConsumer>();
+            bus.AddConsumer<FxConversionRejectedConsumer>();
+            bus.AddConsumer<OpenBankingPaymentRequestedConsumer>();
 
             bus.AddEntityFrameworkOutbox<DBContext>(outbox =>
             {

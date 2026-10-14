@@ -1,0 +1,62 @@
+@OpenBankingService.Presentation_HostAddress = http://localhost:5109
+@accessToken = {{accessToken}}
+@consentToken = {{consentToken}}
+@accountId = {{accountId}}
+@destinationAccountId = {{destinationAccountId}}
+@consentId = {{consentId}}
+@initiationId = {{initiationId}}
+@idempotencyKey = {{idempotencyKey}}
+
+###
+
+POST {{OpenBankingService.Presentation_HostAddress}}/api/open-banking/consents
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "tppClientId": "sandbox-tpp",
+  "scopes": ["ais", "pis"],
+  "accountIds": ["{{accountId}}", "{{destinationAccountId}}"],
+  "expiresInDays": 90
+}
+
+###
+
+GET {{OpenBankingService.Presentation_HostAddress}}/api/open-banking/consents/me
+Authorization: Bearer {{accessToken}}
+
+###
+
+POST {{OpenBankingService.Presentation_HostAddress}}/api/open-banking/consents/{{consentId}}/revoke
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET {{OpenBankingService.Presentation_HostAddress}}/api/open-banking/ais/accounts
+X-Consent-Token: {{consentToken}}
+
+###
+
+GET {{OpenBankingService.Presentation_HostAddress}}/api/open-banking/ais/accounts/{{accountId}}
+X-Consent-Token: {{consentToken}}
+
+###
+
+POST {{OpenBankingService.Presentation_HostAddress}}/api/open-banking/pis/payments
+X-Consent-Token: {{consentToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{
+  "sourceAccountId": "{{accountId}}",
+  "destinationAccountId": "{{destinationAccountId}}",
+  "amount": 100,
+  "currency": "TRY",
+  "description": "Open banking virman"
+}
+
+###
+
+GET {{OpenBankingService.Presentation_HostAddress}}/api/open-banking/pis/payments/{{initiationId}}
+X-Consent-Token: {{consentToken}}
